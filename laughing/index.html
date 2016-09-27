@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+<div id="person">
+    <h1 v-text="title"></h1>
+    <div v-show="show">我是laughing猪爷,电6王者</div>
+    <input type="text" v-bind="firstName"/>
+    <input type="text" v-bind="secondName"/>
+    <div v-text="fullName"></div>
+</div>
+</body>
+
+<script src="./watch.js"></script>
+<script src="./laughing.js"></script>
+
+<script>
+    (function () {
+        var obj =window.obj= {
+            title: '欢迎来到英雄联盟',
+            show: false,
+            firstName: 'zhu',
+            secondName: 'jian',
+            fullName: function () {
+                return this.firstName + this.secondName;
+            }
+        };
+        new mvvm(obj, document.querySelector('#person'));
+    })()
+
+</script>
+</html>
