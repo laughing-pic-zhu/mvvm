@@ -6,17 +6,20 @@ laugh提供简洁的双向绑定功能
     - v-show : 是否显示
  - $watch
     ```
-    - var cc={
+    var cc={
         title: '欢迎来到英雄联盟',
         show: false
     };
-    - var vm=new laugh({
+    
+    var vm=new laugh({
         el:'#person',
         data:obj
     });
-    - vm.$watch(cc,function(path,oldValue,newValue){
+    
+    vm.$watch(cc,function(path,oldValue,newValue){
         console.log(path);
         console.log(oldValue);
         console.log(newValue);
     })
+    
     ```
