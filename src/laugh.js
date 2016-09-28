@@ -1,6 +1,6 @@
 function laugh(params) {
     var nodes = document.querySelector(params.el);
-    var obj = params.data||{};
+    var obj = params.data || {};
     this.cache = [];
 
     this.compile = function (dom) {
@@ -27,9 +27,8 @@ function laugh(params) {
     this.paserNode = function (node) {
         var text = node.getAttribute('v-text');
         var show = node.getAttribute('v-show');
-        //var bind = node.getAttribute('v-bind');
         var model = node.getAttribute('v-model');
-
+        var vFor = node.getAttribute('v-for');
         var temp = {
             node: node
         };
@@ -40,17 +39,19 @@ function laugh(params) {
         if (show) {
             temp.show = show;
         }
-        //if (bind) {
-        //    temp.bind = bind;
-        //    node.addEventListener('input', this.onchange.bind(this, bind), false);
-        //}
         if (model) {
-            if(!obj.hasOwnProperty(model)){
-                obj[model]='';
+            if (!obj.hasOwnProperty(model)) {
+                obj[model] = '';
             }
             temp.model = model;
             node.addEventListener('input', this.onchange.bind(this, model), false);
         }
+
+        if (vFor) {
+            var list = vFor.replace(/.*?\s+in\s*/, '');
+            temp.list = list;
+        }
+
         return temp;
     };
 
@@ -62,7 +63,7 @@ function laugh(params) {
         if (typeof content == 'function') {
             content = content.apply(obj);
         }
-        node.textContent = content||'';
+        node.textContent = content || '';
     };
 
     this.styleChange = function (node, key, value) {
@@ -70,7 +71,26 @@ function laugh(params) {
     };
 
     this.valueChange = function (node, content) {
-        node.value = content||'';
+        node.value = content || '';
+    };
+
+    this.listChange = function (node, list) {
+        var parentNode = node.parentNode;
+        var textContent=node.getAttribute('v-text');
+        list.forEach(function (item, index) {
+            var newNode = node.cloneNode(true);
+            newNode.removeAttribute('v-for');
+            if(textContent){
+                newNode.textContent = item;
+            }else{
+                newNode.textContent = '';
+            }
+
+            if (index == 0) {
+                parentNode.removeChild(node);
+            }
+            parentNode.appendChild(newNode);
+        })
     };
 
     this.judgeNull = function (value) {
@@ -97,6 +117,9 @@ function laugh(params) {
             }
             if (this.judgeNull(item.model)) {
                 this.valueChange(item.node, obj[item.model]);
+            }
+            if (this.judgeNull(item.list)) {
+                this.listChange(item.node, obj[item.list]);
             }
         }, this);
     };

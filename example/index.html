@@ -17,13 +17,21 @@
     <h1 v-text="message"></h1>
     <input type="text" v-model="message"/>
 </div>
+
+<div id="todos">
+    <ul>
+        <li v-for="todo in todos" v-text="todo">
+
+        </li>
+    </ul>
+</div>
+
 </body>
 
 <script src="../src/laugh.js"></script>
 
 <script>
-    (function () {
-        var obj =window.obj= {
+        var obj = {
             title: '欢迎来到英雄联盟',
             show: false,
             firstName: 'zhu',
@@ -37,17 +45,26 @@
             el:'#person',
             data:obj
         });
-
-    })()
-
 </script>
 
 <script>
     new laugh({
-        el:'#message',
+        el:'#message'
+    });
+</script>
+
+<script>
+    new laugh({
+        el:'#todos',
         data:{
-            message:111
+            todos: [
+                'add one',
+                'add two',
+                'add three11'
+            ]
         }
     });
 </script>
+
+
 </html>

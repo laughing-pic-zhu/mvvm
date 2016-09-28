@@ -4,9 +4,10 @@ laugh提供简洁的双向绑定功能
     - v-model : 双向数据绑定
     - v-text : 单项数据绑定
     - v-show : 是否显示
+    - v-for : 循环遍历
  - $watch
     ```
-    var cc={
+    var obj={
         title: '欢迎来到英雄联盟',
         show: false
     };
