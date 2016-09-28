@@ -7,10 +7,15 @@
 <body>
 <div id="person">
     <h1 v-text="title"></h1>
-    <div v-show="show">我是laughing猪爷,电6王者</div>
-    <input type="text" v-bind="firstName"/>
-    <input type="text" v-bind="secondName"/>
+    <div v-show="show">我是laughing猪爷,lol电6王者</div>
+    <input type="text" v-model="firstName"/>
+    <input type="text" v-model="secondName"/>
     <div v-text="fullName"></div>
+</div>
+
+<div id="message">
+    <h1 v-text="message"></h1>
+    <input type="text" v-model="message"/>
 </div>
 </body>
 
@@ -27,8 +32,22 @@
                 return this.firstName + this.secondName;
             }
         };
-        new laughing(obj, document.querySelector('#person'));
+
+        new laugh({
+            el:'#person',
+            data:obj
+        });
+
     })()
 
+</script>
+
+<script>
+    new laugh({
+        el:'#message',
+        data:{
+            message:111
+        }
+    });
 </script>
 </html>
