@@ -6,7 +6,7 @@
 </head>
 <body>
 <div id="person">
-    <h1 v-text="title"></h1>
+    <h1 >{{title}}</h1>
     <div v-show="show">我是laughing猪爷,lol电6王者</div>
     <input type="text" v-model="firstName"/>
     <input type="text" v-model="secondName"/>
@@ -54,14 +54,15 @@
 </script>
 
 <script>
+    var todos=[
+        'add one',
+        'add two',
+        'add three11'
+    ];
     new laugh({
         el:'#todos',
         data:{
-            todos: [
-                'add one',
-                'add two',
-                'add three11'
-            ]
+            todos: todos
         }
     });
 </script>

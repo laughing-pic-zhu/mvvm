@@ -29,6 +29,10 @@ function laugh(params) {
         var show = node.getAttribute('v-show');
         var model = node.getAttribute('v-model');
         var vFor = node.getAttribute('v-for');
+        var textContent=node.textContent;
+        if(textContent){
+            text=this.stringParse(textContent);
+        }
         var temp = {
             node: node
         };
@@ -48,8 +52,11 @@ function laugh(params) {
         }
 
         if (vFor) {
-            var list = vFor.replace(/.*?\s+in\s*/, '');
-            temp.list = list;
+            var t_array=vFor.split(/\s+/);
+            temp.list = {
+                value:t_array[0],
+                list:t_array[2]
+            };
         }
 
         return temp;
@@ -77,10 +84,12 @@ function laugh(params) {
     this.listChange = function (node, list) {
         var parentNode = node.parentNode;
         var textContent=node.getAttribute('v-text');
-        list.forEach(function (item, index) {
+        var _list=obj[list.list];
+        var value=list.value;
+        _list.forEach(function (item, index) {
             var newNode = node.cloneNode(true);
             newNode.removeAttribute('v-for');
-            if(textContent){
+            if(textContent==value){
                 newNode.textContent = item;
             }else{
                 newNode.textContent = '';
@@ -91,6 +100,15 @@ function laugh(params) {
             }
             parentNode.appendChild(newNode);
         })
+    };
+
+    this.stringParse=function(str){
+        var reg =/^{{(.+)}}$/;
+        var array=reg.exec(str);
+        if(array){
+            return  array.slice(1);
+        }
+        return '';
     };
 
     this.judgeNull = function (value) {
@@ -119,7 +137,7 @@ function laugh(params) {
                 this.valueChange(item.node, obj[item.model]);
             }
             if (this.judgeNull(item.list)) {
-                this.listChange(item.node, obj[item.list]);
+                this.listChange(item.node, item.list);
             }
         }, this);
     };
@@ -131,7 +149,7 @@ function laugh(params) {
             if (type == '[object Object]' || type == '[object Array]') {
                 this.$observeObj(_obj, path);
                 if (type == '[object Array]') {
-                    this.cloneArray(_obj, path);
+                    this.$cloneArray(_obj, path);
                 }
             }
         };
@@ -156,7 +174,7 @@ function laugh(params) {
             });
         };
 
-        this.cloneArray = function (a_array, path) {
+        this.$cloneArray = function (a_array, path) {
             var ORP = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
             var arrayProto = Array.prototype;
             var newProto = Object.create(arrayProto);
