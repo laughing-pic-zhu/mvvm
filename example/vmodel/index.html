@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+
+<div id="message">
+    <h1 v-text="message"></h1>
+    <h1 >{{message}}</h1>
+    <input type="text" v-model="message"/>
+</div>
+
+</body>
+
+<script src="../../src/laugh.js"></script>
+
+<script>
+    new laugh({
+        el:'#message'
+    });
+</script>
+
+</html>

@@ -9,7 +9,9 @@
     - v-text : 单项数据绑定
     - v-show : 是否显示
     - v-for : 循环遍历
+    - v-if/v-else : 条件判断
  - $watch
+    
     ```
     var obj={
         title: '欢迎来到英雄联盟',

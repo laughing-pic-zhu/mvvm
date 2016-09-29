@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+</head>
+<body>
+
+<div id="condition">
+    <h1 v-if="ok">Yes</h1>
+    <h1 v-else>No</h1>
+</div>
+
+
+</body>
+
+<script src="../../src/laugh.js"></script>
+
+<script>
+    var obj = {
+        ok: true
+    };
+    new laugh({
+        el: '#condition',
+        data: obj
+    });
+</script>
+
+
+</html>

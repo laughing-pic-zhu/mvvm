@@ -29,7 +29,7 @@ function laugh(params) {
         var model = node.getAttribute('v-model');
         var vFor = node.getAttribute('v-for');
         var vIf = node.getAttribute('v-if');
-        var vElse=node.hasAttribute('v-else');
+        var vElse = node.hasAttribute('v-else');
         var textContent = node.textContent;
         if (textContent) {
             text = this.stringParse(textContent);
@@ -90,11 +90,14 @@ function laugh(params) {
     };
 
     this.listChange = function (node, list) {
-        var parentNode = node.parentNode;
+        //this.$parentNode=111;
+
         var textContent = node.getAttribute('v-text');
         var _list = obj[list.list];
+        var parentNode=this.operateParentNode(node, _list);
         var value = list.value;
-        _list.forEach(function (item, index) {
+        parentNode.textContent='';
+        _list.forEach(function (item) {
             var newNode = node.cloneNode(true);
             newNode.removeAttribute('v-for');
             if (textContent == value) {
@@ -102,16 +105,16 @@ function laugh(params) {
             } else {
                 newNode.textContent = '';
             }
-
-            if (index == 0) {
-                parentNode.removeChild(node);
-            }
             parentNode.appendChild(newNode);
         })
     };
 
     this.ifChange = function (node, judge) {
         var nextNode = node.nextElementSibling;
+        if(!nextNode){
+            nextNode=node._nextNode;
+        }
+        node._nextNode=nextNode;
         var flag;
         if (judge) {
             node.removeAttribute('v-if');
@@ -133,6 +136,19 @@ function laugh(params) {
             parentNode.removeChild(node);
         }
     };
+
+    this.operateParentNode = function (node, list) {
+        var parentNode=node.parentNode;
+        if (!parentNode) {
+            parentNode = list._parentNode;
+        }
+
+        if (!list._parentNode) {
+            list._parentNode = parentNode;
+        }
+        return parentNode;
+    };
+
 
     this.stringParse = function (str) {
         var reg = /^{{(.+)}}$/;
