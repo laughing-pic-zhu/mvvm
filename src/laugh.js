@@ -22,7 +22,7 @@ function laugh(params) {
         this.cache = this.cache.map(function (node) {
             return this.paserNode(node);
         }, this);
-    };
+    }; 
 
     this.paserNode = function (node) {
         var text = node.getAttribute('v-text');
