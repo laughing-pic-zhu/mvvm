@@ -2,7 +2,6 @@ function laugh(params) {
     var nodes = document.querySelector(params.el);
     var obj = params.data || {};
     this.cache = [];
-
     this.compile = function (dom) {
         this.addQueue(dom);
     };
@@ -22,16 +21,18 @@ function laugh(params) {
         this.cache = this.cache.map(function (node) {
             return this.paserNode(node);
         }, this);
-    }; 
+    };
 
     this.paserNode = function (node) {
         var text = node.getAttribute('v-text');
         var show = node.getAttribute('v-show');
         var model = node.getAttribute('v-model');
         var vFor = node.getAttribute('v-for');
-        var textContent=node.textContent;
-        if(textContent){
-            text=this.stringParse(textContent);
+        var vIf = node.getAttribute('v-if');
+        var vElse=node.hasAttribute('v-else');
+        var textContent = node.textContent;
+        if (textContent) {
+            text = this.stringParse(textContent);
         }
         var temp = {
             node: node
@@ -52,11 +53,18 @@ function laugh(params) {
         }
 
         if (vFor) {
-            var t_array=vFor.split(/\s+/);
+            var t_array = vFor.split(/\s+/);
             temp.list = {
-                value:t_array[0],
-                list:t_array[2]
+                value: t_array[0],
+                list: t_array[2]
             };
+        }
+        if (vIf) {
+            temp.if = vIf;
+        }
+
+        if (vElse) {
+            temp.else = true;
         }
 
         return temp;
@@ -83,15 +91,15 @@ function laugh(params) {
 
     this.listChange = function (node, list) {
         var parentNode = node.parentNode;
-        var textContent=node.getAttribute('v-text');
-        var _list=obj[list.list];
-        var value=list.value;
+        var textContent = node.getAttribute('v-text');
+        var _list = obj[list.list];
+        var value = list.value;
         _list.forEach(function (item, index) {
             var newNode = node.cloneNode(true);
             newNode.removeAttribute('v-for');
-            if(textContent==value){
+            if (textContent == value) {
                 newNode.textContent = item;
-            }else{
+            } else {
                 newNode.textContent = '';
             }
 
@@ -102,11 +110,35 @@ function laugh(params) {
         })
     };
 
-    this.stringParse=function(str){
-        var reg =/^{{(.+)}}$/;
-        var array=reg.exec(str);
-        if(array){
-            return  array.slice(1);
+    this.ifChange = function (node, judge) {
+        var nextNode = node.nextElementSibling;
+        var flag;
+        if (judge) {
+            node.removeAttribute('v-if');
+            flag = true;
+        } else {
+            var parentNode = node.parentNode;
+            parentNode.removeChild(node);
+            flag = false;
+        }
+        nextNode.judge = flag;
+    };
+
+    this.elseChange = function (node) {
+        var flag = !node.judge;
+        if (flag) {
+            node.removeAttribute('v-else');
+        } else {
+            var parentNode = node.parentNode;
+            parentNode.removeChild(node);
+        }
+    };
+
+    this.stringParse = function (str) {
+        var reg = /^{{(.+)}}$/;
+        var array = reg.exec(str);
+        if (array) {
+            return array.slice(1);
         }
         return '';
     };
@@ -124,6 +156,7 @@ function laugh(params) {
             if (this.judgeNull(item.text)) {
                 this.textChange(item.node, obj[item.text]);
             }
+
             if (this.judgeNull(item.show)) {
                 var value;
                 if (obj[item.show]) {
@@ -133,12 +166,23 @@ function laugh(params) {
                 }
                 this.styleChange(item.node, 'display', value);
             }
+
             if (this.judgeNull(item.model)) {
                 this.valueChange(item.node, obj[item.model]);
             }
+
             if (this.judgeNull(item.list)) {
                 this.listChange(item.node, item.list);
             }
+
+            if (this.judgeNull(item.if)) {
+                this.ifChange(item.node, obj[item.if]);
+            }
+
+            if (this.judgeNull(item.else)) {
+                this.elseChange(item.node);
+            }
+
         }, this);
     };
 

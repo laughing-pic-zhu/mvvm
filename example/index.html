@@ -26,6 +26,12 @@
     </ul>
 </div>
 
+<div id="condition">
+    <h1 v-if="ok">Yes</h1>
+    <h1 v-else>No</h1>
+</div>
+
+
 </body>
 
 <script src="../src/laugh.js"></script>
@@ -63,6 +69,15 @@
         el:'#todos',
         data:{
             todos: todos
+        }
+    });
+</script>
+
+<script>
+    new laugh({
+        el:'#condition',
+        data:{
+            ok: true
         }
     });
 </script>
