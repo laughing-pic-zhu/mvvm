@@ -23,7 +23,16 @@ function laugh(params) {
         }, this);
     };
 
+    this.storageDom=function(node){
+        this.$parentNode=node.parentNode;
+        this.$nextNode=node.nextElementSibling;
+        this.$node=node;
+        //this.$parent=node.parentNode;
+    };
+
     this.paserNode = function (node) {
+        var scope={};
+        this.storageDom.call(scope,node);
         var text = node.getAttribute('v-text');
         var show = node.getAttribute('v-show');
         var model = node.getAttribute('v-model');
@@ -34,67 +43,67 @@ function laugh(params) {
         if (textContent) {
             text = this.stringParse(textContent);
         }
-        var temp = {
-            node: node
-        };
 
         if (text) {
-            temp.text = text;
+            scope.text = text;
         }
         if (show) {
-            temp.show = show;
+            scope.show = show;
         }
         if (model) {
             if (!obj.hasOwnProperty(model)) {
                 obj[model] = '';
             }
-            temp.model = model;
+            scope.model = model;
             node.addEventListener('input', this.onchange.bind(this, model), false);
         }
 
         if (vFor) {
             var t_array = vFor.split(/\s+/);
-            temp.list = {
+            scope.list = {
                 value: t_array[0],
                 list: t_array[2]
             };
+
         }
         if (vIf) {
-            temp.if = vIf;
+            scope.if = vIf;
         }
 
         if (vElse) {
-            temp.else = true;
+            scope.else = true;
         }
 
-        return temp;
+        return scope;
     };
 
     this.onchange = function (attr) {
         obj[attr] = event.target.value;
     };
 
-    this.textChange = function (node, content) {
+    this.textChange = function (item, content) {
+        var node=item.$node;
         if (typeof content == 'function') {
             content = content.apply(obj);
         }
         node.textContent = content || '';
     };
 
-    this.styleChange = function (node, key, value) {
+    this.styleChange = function (item, key, value) {
+        var node=item.$node;
         node.style[key] = value;
     };
 
-    this.valueChange = function (node, content) {
+    this.valueChange = function (item, content) {
+        var node=item.$node;
         node.value = content || '';
     };
 
-    this.listChange = function (node, list) {
-        //this.$parentNode=111;
-
+    this.listChange = function (item, list) {
+        var parentNode=item.$parentNode;
+        var node=item.$node;
         var textContent = node.getAttribute('v-text');
         var _list = obj[list.list];
-        var parentNode=this.operateParentNode(node, _list);
         var value = list.value;
         parentNode.textContent='';
         _list.forEach(function (item) {
@@ -109,46 +118,33 @@ function laugh(params) {
         })
     };
 
-    this.ifChange = function (node, judge) {
-        var nextNode = node.nextElementSibling;
-        if(!nextNode){
-            nextNode=node._nextNode;
-        }
-        node._nextNode=nextNode;
+    this.ifChange = function (item, judge) {
+        var node=item.$node;
+        var nextNode=item.$nextNode;
+        var parentNode=item.$parentNode;
         var flag;
         if (judge) {
             node.removeAttribute('v-if');
+            parentNode.appendChild(node);
             flag = true;
         } else {
-            var parentNode = node.parentNode;
             parentNode.removeChild(node);
             flag = false;
         }
         nextNode.judge = flag;
     };
 
-    this.elseChange = function (node) {
+    this.elseChange = function (item) {
+        var node=item.$node;
         var flag = !node.judge;
+        var parentNode=item.$parentNode;
         if (flag) {
             node.removeAttribute('v-else');
+            parentNode.appendChild(node);
         } else {
-            var parentNode = node.parentNode;
             parentNode.removeChild(node);
         }
     };
-
-    this.operateParentNode = function (node, list) {
-        var parentNode=node.parentNode;
-        if (!parentNode) {
-            parentNode = list._parentNode;
-        }
-
-        if (!list._parentNode) {
-            list._parentNode = parentNode;
-        }
-        return parentNode;
-    };
-
 
     this.stringParse = function (str) {
         var reg = /^{{(.+)}}$/;
@@ -170,7 +166,7 @@ function laugh(params) {
         var cache = this.cache;
         cache.forEach(function (item) {
             if (this.judgeNull(item.text)) {
-                this.textChange(item.node, obj[item.text]);
+                this.textChange(item, obj[item.text]);
             }
 
             if (this.judgeNull(item.show)) {
@@ -180,23 +176,23 @@ function laugh(params) {
                 } else {
                     value = 'none';
                 }
-                this.styleChange(item.node, 'display', value);
+                this.styleChange(item, 'display', value);
             }
 
             if (this.judgeNull(item.model)) {
-                this.valueChange(item.node, obj[item.model]);
+                this.valueChange(item, obj[item.model]);
             }
 
             if (this.judgeNull(item.list)) {
-                this.listChange(item.node, item.list);
+                this.listChange(item, item.list);
             }
 
             if (this.judgeNull(item.if)) {
-                this.ifChange(item.node, obj[item.if]);
+                this.ifChange(item, obj[item.if]);
             }
 
             if (this.judgeNull(item.else)) {
-                this.elseChange(item.node);
+                this.elseChange(item);
             }
 
         }, this);
