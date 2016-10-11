@@ -84,7 +84,9 @@ function laugh(params) {
                 value: t_array[0],
                 list: t_array[2]
             };
-
+            var newNode=createAnchor();
+            scope.$end=newNode;
+            replaceNode(newNode,node);
         }
         if (vIf) {
             scope.if = vIf;
@@ -136,7 +138,8 @@ function laugh(params) {
             }
             fragment.appendChild(newNode);
         });
-        parentNode.replaceChild(fragment,node);
+        var end=item.$end;
+        parentNode.insertBefore(fragment,end);
     };
 
     this.ifChange = function (item, judge) {
@@ -190,6 +193,15 @@ function laugh(params) {
         var node=item.$node;
         //parentNode.appendChild(node);
     };
+
+    var createAnchor =function(){
+       return document.createTextNode(' ');
+    };
+
+    var replaceNode=function(node,old){
+        old.parentNode.replaceChild(node,old);
+    }
+
 
     this.render = function () {
         var cache = this.cache;
