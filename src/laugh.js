@@ -77,15 +77,13 @@ function laugh(params) {
             scope.model = model;
             node.addEventListener('input', this.onchange.bind(this, model), false);
         }
-
         if (vFor) {
             var t_array = vFor.split(/\s+/);
-            scope.list = {
-                value: t_array[0],
-                list: t_array[2]
-            };
             var newNode=createAnchor();
             scope.$end=newNode;
+            scope.$array=[];
+            scope.$list=obj[t_array[2]];
+            scope.$key=t_array[0];
             replaceNode(newNode,node);
         }
         if (vIf) {
@@ -121,25 +119,31 @@ function laugh(params) {
         node.value = content || '';
     };
 
-    this.listChange = function (item, list) {
+    this.listChange = function (item) {
         var parentNode=item.$parentNode;
         var node=item.$node;
-        var textContent = node.getAttribute('v-text');
-        var _list = obj[list.list];
-        var value = list.value;
-        var fragment=createFragment();
-        _list.forEach(function (item) {
-            var newNode = node.cloneNode(true);
-            newNode.removeAttribute('v-for');
-            if (textContent == value) {
-                newNode.textContent = item;
-            } else {
-                newNode.textContent = '';
-            }
-            fragment.appendChild(newNode);
-        });
         var end=item.$end;
-        parentNode.insertBefore(fragment,end);
+        var list = item.$list;
+        var value = item.$key;
+        var textContent = node.getAttribute('v-text');
+        var array=item.$array;
+        if(array.length==0){
+            list.forEach(function (_item) {
+                var fragment=createFragment();
+                var newNode = node.cloneNode(true);
+                newNode.removeAttribute('v-for');
+                if (textContent == value) {
+                    newNode.textContent = _item;
+                } else {
+                    newNode.textContent = '';
+                }
+                fragment.appendChild(newNode);
+                parentNode.insertBefore(fragment,end);
+                array.push(_item);
+            });
+        }else{
+
+        }
     };
 
     this.ifChange = function (item, judge) {
@@ -226,9 +230,8 @@ function laugh(params) {
                 this.valueChange(item, obj[item.model]);
             }
 
-            if (this.judgeNull(item.list)) {
-                this.currency(item);
-                this.listChange(item, item.list);
+            if (this.judgeNull(item.$list)) {
+                this.listChange(item);
             }
 
             if (this.judgeNull(item.if)) {
