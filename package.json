@@ -1,0 +1,25 @@
+{
+  "name": "mvvm",
+  "version": "1.0.0",
+  "description": "简易mvvm库",
+  "main": "index.js",
+  "directories": {
+    "example": "example"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/laughing-pic-zhu/laughing.git"
+  },
+  "keywords": [
+    "mvvm"
+  ],
+  "author": "laughing猪爷",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/laughing-pic-zhu/laughing/issues"
+  },
+  "homepage": "https://github.com/laughing-pic-zhu/laughing#readme"
+}

@@ -1,10 +1,8 @@
 function laugh(params) {
-    this.$el = params.el;
-    var nodes = document.querySelector(this.$el);
+    var nodes = document.querySelector(params.el);
     var obj = params.data || {};
     //var parseType=['vtext','vif','velse','vfor','vshow'];
     this.cache = [];
-    //this.domTree={};
     this.compile = function (dom) {
         this.addQueue(dom);
     };
@@ -30,18 +28,10 @@ function laugh(params) {
         this.$parentNode = node.parentNode;
         this.$nextNode = node.nextElementSibling;
         this.$node = node;
-        this.$hasChildNode = node.hasChildNodes();
-        //this.$parent=node.parentNode;
     };
 
     var createFragment = function () {
         return document.createDocumentFragment();
-    };
-
-    this.cleanChild = function (scope) {
-        if (scope.$hasChildNode) {
-            scope.$node.textContent = '';
-        }
     };
 
     this.removeAttribute = function (node, attr) {
@@ -190,13 +180,6 @@ function laugh(params) {
         return true;
     };
 
-    this.currency = function (item) {
-        this.cleanChild(item);
-        var parentNode = item.$parentNode;
-        var node = item.$node;
-        //parentNode.appendChild(node);
-    };
-
     var createAnchor = function () {
         return document.createTextNode(' ');
     };
@@ -209,16 +192,11 @@ function laugh(params) {
                     a.push(i);
                 }
             }
-            a.type = 'delete';
         } else {
             for (var i = 0; i < _new.length; i++) {
                 if (_new[i] !== _old[i]) {
                     a.push(i);
                 }
-            }
-            a.type = 'add';
-            if(_old.length == _new.length){
-                a.type='equal';
             }
         }
         return a;
@@ -237,7 +215,6 @@ function laugh(params) {
             var fragment = createFragment();
             var newNode = node.cloneNode(true);
             newNode.removeAttribute('v-for');
-
             if (list[_item]) {
                 singleDom(node, newNode, value, list[_item]);
             } else {
@@ -275,7 +252,6 @@ function laugh(params) {
         cache.forEach(function (item) {
             if (this.judgeNull(item.text)) {
                 item.$textContent = true;
-                this.currency(item);
                 this.textChange(item, obj[item.text]);
             }
 
