@@ -81,8 +81,8 @@ function laugh(params) {
             var t_array = vFor.split(/\s+/);
             var newNode = createAnchor();
             scope.$end = newNode;
-            scope.$array = [];
-            scope.$domCache=[];
+            scope.$arrayCache = [];
+            scope.$domCache = [];
             scope.$list = obj[t_array[2]];
             scope.$key = t_array[0];
             replaceNode(newNode, node);
@@ -126,32 +126,27 @@ function laugh(params) {
         var end = item.$end;
         var list = item.$list;
         var value = item.$key;
-        var textContent = node.getAttribute('v-text');
-        var arrayCache = item.$array;
-        var domCache=item.$domCache;
+        var arrayCache = item.$arrayCache;
+        var domCache = item.$domCache;
         if (arrayCache.length == 0) {
             list.forEach(function (_item) {
                 var fragment = createFragment();
                 var newNode = node.cloneNode(true);
                 newNode.removeAttribute('v-for');
-                if (textContent == value) {
-                    newNode.textContent = _item;
-                } else {
-                    newNode.textContent = '';
-                }
+                singleDom(node, newNode, value, _item);
                 fragment.appendChild(newNode);
                 parentNode.insertBefore(fragment, end);
                 arrayCache.push(_item);
                 domCache.push(newNode);
             });
         } else {
-            var diff=contrastArray(arrayCache,list);
-            correctDom(item,diff);
+            var diff = contrastArray(arrayCache, list);
+            correctDom(item, diff);
         }
     };
 
-    this.ifChange = function (item, judge) {
 
+    this.ifChange = function (item, judge) {
         var node = item.$node;
         var nextNode = item.$nextNode;
         var parentNode = item.$parentNode;
@@ -208,32 +203,67 @@ function laugh(params) {
 
     var contrastArray = function (_old, _new) {
         var a = [];
-        for (var i = 0; i < _new.length; i++) {
-            if (_new[i] !== _old[i]) {
-                a.push(i);
+        if (_old.length > _new.length) {
+            for (var i = 0; i < _old.length; i++) {
+                if (_new[i] !== _old[i]) {
+                    a.push(i);
+                }
+            }
+            a.type = 'delete';
+        } else {
+            for (var i = 0; i < _new.length; i++) {
+                if (_new[i] !== _old[i]) {
+                    a.push(i);
+                }
+            }
+            a.type = 'add';
+            if(_old.length == _new.length){
+                a.type='equal';
             }
         }
         return a;
     };
 
-    var correctDom=function(item,diff){
-        var diffArray=diff.slice();
-        var domCache=item.$domCache;
-        var node =item.$node;
-        var end=item.$end;
-        var parentNode=item.$parentNode;
-        diffArray.forEach(function(value){
+    var correctDom = function (item, diff) {
+        var diffArray = diff.slice();
+        var domCache = item.$domCache;
+        var arrayCache = item.$arrayCache;
+        var node = item.$node;
+        var end = item.$end;
+        var parentNode = item.$parentNode;
+        var value = item.$key;
+        var list = item.$list;
+        diffArray.forEach(function (_item) {
             var fragment = createFragment();
             var newNode = node.cloneNode(true);
             newNode.removeAttribute('v-for');
+
+            if (list[_item]) {
+                singleDom(node, newNode, value, list[_item]);
+            } else {
+                parentNode.removeChild(domCache[_item]);
+                delete domCache[_item];
+                delete arrayCache[_item];
+                return;
+            }
             fragment.appendChild(newNode);
-            if(domCache[value]){
-                replaceNode(fragment,domCache[value]);
-            }else{
+            if (domCache[_item]) {
+                replaceNode(fragment, domCache[_item]);
+            } else {
                 parentNode.insertBefore(fragment, end);
             }
-            domCache[value]=newNode;
+            domCache[_item] = newNode;
+            arrayCache[_item]=list[_item];
         });
+    };
+
+    var singleDom = function (node, newNode, value, _item) {
+        var textContent = node.getAttribute('v-text');
+        if (textContent == value) {
+            newNode.textContent = _item;
+        } else {
+            newNode.textContent = '';
+        }
     };
 
     var replaceNode = function (node, old) {
