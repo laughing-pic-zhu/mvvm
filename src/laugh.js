@@ -1,5 +1,5 @@
 function laugh(params) {
-    this.$el=params.el;
+    this.$el = params.el;
     var nodes = document.querySelector(this.$el);
     var obj = params.data || {};
     //var parseType=['vtext','vif','velse','vfor','vshow'];
@@ -26,33 +26,33 @@ function laugh(params) {
         }, this);
     };
 
-    this.storageDom=function(node){
-        this.$parentNode=node.parentNode;
-        this.$nextNode=node.nextElementSibling;
-        this.$node=node;
-        this.$hasChildNode=node.hasChildNodes();
+    this.storageDom = function (node) {
+        this.$parentNode = node.parentNode;
+        this.$nextNode = node.nextElementSibling;
+        this.$node = node;
+        this.$hasChildNode = node.hasChildNodes();
         //this.$parent=node.parentNode;
     };
 
-    var createFragment=function(){
+    var createFragment = function () {
         return document.createDocumentFragment();
     };
 
-    this.cleanChild=function(scope){
-        if(scope.$hasChildNode){
-            scope.$node.textContent='';
+    this.cleanChild = function (scope) {
+        if (scope.$hasChildNode) {
+            scope.$node.textContent = '';
         }
     };
 
-    this.removeAttribute=function(node,attr){
-        if(node.hasAttribute(attr)){
+    this.removeAttribute = function (node, attr) {
+        if (node.hasAttribute(attr)) {
             node.removeAttribute(attr);
         }
     };
 
     this.paserNode = function (node) {
-        var scope={};
-        this.storageDom.call(scope,node);
+        var scope = {};
+        this.storageDom.call(scope, node);
         var text = node.getAttribute('v-text');
         var show = node.getAttribute('v-show');
         var model = node.getAttribute('v-model');
@@ -79,12 +79,13 @@ function laugh(params) {
         }
         if (vFor) {
             var t_array = vFor.split(/\s+/);
-            var newNode=createAnchor();
-            scope.$end=newNode;
-            scope.$array=[];
-            scope.$list=obj[t_array[2]];
-            scope.$key=t_array[0];
-            replaceNode(newNode,node);
+            var newNode = createAnchor();
+            scope.$end = newNode;
+            scope.$array = [];
+            scope.$domCache=[];
+            scope.$list = obj[t_array[2]];
+            scope.$key = t_array[0];
+            replaceNode(newNode, node);
         }
         if (vIf) {
             scope.if = vIf;
@@ -102,7 +103,7 @@ function laugh(params) {
     };
 
     this.textChange = function (item, content) {
-        var node=item.$node;
+        var node = item.$node;
         if (typeof content == 'function') {
             content = content.apply(obj);
         }
@@ -110,26 +111,27 @@ function laugh(params) {
     };
 
     this.styleChange = function (item, key, value) {
-        var node=item.$node;
+        var node = item.$node;
         node.style[key] = value;
     };
 
     this.valueChange = function (item, content) {
-        var node=item.$node;
+        var node = item.$node;
         node.value = content || '';
     };
 
     this.listChange = function (item) {
-        var parentNode=item.$parentNode;
-        var node=item.$node;
-        var end=item.$end;
+        var parentNode = item.$parentNode;
+        var node = item.$node;
+        var end = item.$end;
         var list = item.$list;
         var value = item.$key;
         var textContent = node.getAttribute('v-text');
-        var array=item.$array;
-        if(array.length==0){
+        var arrayCache = item.$array;
+        var domCache=item.$domCache;
+        if (arrayCache.length == 0) {
             list.forEach(function (_item) {
-                var fragment=createFragment();
+                var fragment = createFragment();
                 var newNode = node.cloneNode(true);
                 newNode.removeAttribute('v-for');
                 if (textContent == value) {
@@ -138,22 +140,24 @@ function laugh(params) {
                     newNode.textContent = '';
                 }
                 fragment.appendChild(newNode);
-                parentNode.insertBefore(fragment,end);
-                array.push(_item);
+                parentNode.insertBefore(fragment, end);
+                arrayCache.push(_item);
+                domCache.push(newNode);
             });
-        }else{
-
+        } else {
+            var diff=contrastArray(arrayCache,list);
+            correctDom(item,diff);
         }
     };
 
     this.ifChange = function (item, judge) {
 
-        var node=item.$node;
-        var nextNode=item.$nextNode;
-        var parentNode=item.$parentNode;
+        var node = item.$node;
+        var nextNode = item.$nextNode;
+        var parentNode = item.$parentNode;
         var flag;
         if (judge) {
-            this.removeAttribute(node,'v-if');
+            this.removeAttribute(node, 'v-if');
             parentNode.appendChild(node);
             flag = true;
         } else {
@@ -164,11 +168,11 @@ function laugh(params) {
     };
 
     this.elseChange = function (item) {
-        var node=item.$node;
+        var node = item.$node;
         var flag = !node.judge;
-        var parentNode=item.$parentNode;
+        var parentNode = item.$parentNode;
         if (flag) {
-            this.removeAttribute(node,'v-else');
+            this.removeAttribute(node, 'v-else');
             parentNode.appendChild(node);
         } else {
             parentNode.removeChild(node);
@@ -191,27 +195,56 @@ function laugh(params) {
         return true;
     };
 
-    this.currency=function(item){
+    this.currency = function (item) {
         this.cleanChild(item);
-        var parentNode=item.$parentNode;
-        var node=item.$node;
+        var parentNode = item.$parentNode;
+        var node = item.$node;
         //parentNode.appendChild(node);
     };
 
-    var createAnchor =function(){
-       return document.createTextNode(' ');
+    var createAnchor = function () {
+        return document.createTextNode(' ');
     };
 
-    var replaceNode=function(node,old){
-        old.parentNode.replaceChild(node,old);
-    }
+    var contrastArray = function (_old, _new) {
+        var a = [];
+        for (var i = 0; i < _new.length; i++) {
+            if (_new[i] !== _old[i]) {
+                a.push(i);
+            }
+        }
+        return a;
+    };
 
+    var correctDom=function(item,diff){
+        var diffArray=diff.slice();
+        var domCache=item.$domCache;
+        var node =item.$node;
+        var end=item.$end;
+        var parentNode=item.$parentNode;
+        diffArray.forEach(function(value){
+            var fragment = createFragment();
+            var newNode = node.cloneNode(true);
+            newNode.removeAttribute('v-for');
+            fragment.appendChild(newNode);
+            if(domCache[value]){
+                replaceNode(fragment,domCache[value]);
+            }else{
+                parentNode.insertBefore(fragment, end);
+            }
+            domCache[value]=newNode;
+        });
+    };
+
+    var replaceNode = function (node, old) {
+        old.parentNode.replaceChild(node, old);
+    };
 
     this.render = function () {
         var cache = this.cache;
         cache.forEach(function (item) {
             if (this.judgeNull(item.text)) {
-                item.$textContent=true;
+                item.$textContent = true;
                 this.currency(item);
                 this.textChange(item, obj[item.text]);
             }
