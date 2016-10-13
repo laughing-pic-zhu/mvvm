@@ -8,7 +8,7 @@ var addQueue = function (nodes) {
         if (nodes.hasChildNodes()) {
             nodes.childNodes.forEach(function (item) {
                 addQueue(item);
-            }, this)
+            })
         }
     }
 };

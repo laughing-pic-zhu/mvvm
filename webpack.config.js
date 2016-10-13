@@ -7,12 +7,13 @@ module.exports = {
     module: {
         loaders: [
             {
-                test: 'src/*.js',
-                loader: 'babel',
-                include: '',
-                presets: ["es2015"]
-            }
+                test: /\.js$/,
+                loader: 'babel-loader',
+                query:{
+                    presets: ["es2015"]
+                }
 
+            }
         ]
     }
 };

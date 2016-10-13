@@ -80,4 +80,9 @@ var stringParse = function (str) {
     }
     return '';
 };
-export {createAnchor,contrastArray,correctDom,singleDom,replaceNode,judgeNull,stringParse}
+
+var createFragment = function () {
+    return document.createDocumentFragment();
+};
+
+export {createAnchor,contrastArray,correctDom,singleDom,replaceNode,judgeNull,stringParse,createFragment}

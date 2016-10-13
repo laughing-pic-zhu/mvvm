@@ -1,3 +1,5 @@
+import {createAnchor,contrastArray,correctDom,singleDom,replaceNode,judgeNull,stringParse} from './util'
+
 var parse = function () {
     this.cache = this.cache.map(function (node) {
         return paserNode(node);
