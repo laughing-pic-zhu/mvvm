@@ -34,7 +34,7 @@
 
 </body>
 
-<script src="../dist/laugh.js"></script>
+<script src="../dist/mvvm.js"></script>
 
 <script>
         var obj = {
@@ -47,14 +47,14 @@
             }
         };
 
-        new laugh({
+        new MVVM({
             el:'#person',
             data:obj
         });
 </script>
 
 <script>
-    new laugh({
+    new MVVM({
         el:'#message'
     });
 </script>
@@ -65,7 +65,7 @@
         'add two',
         'add three11'
     ];
-    new laugh({
+    new MVVM({
         el:'#todos',
         data:{
             todos: todos
@@ -75,7 +75,7 @@
 
 <script>
     var flagObj={ok:true};
-    new laugh({
+    new MVVM({
         el:'#condition',
         data:flagObj
     });

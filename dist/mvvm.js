@@ -58,6 +58,10 @@
 
 	var _observe2 = _interopRequireDefault(_observe);
 
+	var _update = __webpack_require__(6);
+
+	var _update2 = _interopRequireDefault(_update);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var MVVM = function MVVM(params) {
@@ -67,6 +71,7 @@
 	    _compile2.default.call(this, this.$vm);
 	    _parse2.default.call(this);
 	    _observe2.default.call(this);
+	    _update2.default.call(this);
 	};
 	window.MVVM = MVVM;
 
