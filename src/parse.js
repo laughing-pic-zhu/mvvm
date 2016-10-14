@@ -1,14 +1,20 @@
 import {createAnchor,contrastArray,correctDom,singleDom,replaceNode,judgeNull,stringParse} from './util'
 
 var parse = function () {
-    this.cache = this.cache.map(function (node) {
-        return paserNode(node);
+    this.$cache = this.$cache.map(function (node) {
+        return paserNode.call(this,node);
     }, this);
+};
+
+var storageDom = function (node) {
+    this.$parentNode = node.parentNode;
+    this.$nextNode = node.nextElementSibling;
+    this.$node = node;
 };
 
 var paserNode = function (node) {
     var scope = {};
-    this.storageDom.call(scope, node);
+    storageDom.call(scope, node);
     var text = node.getAttribute('v-text');
     var show = node.getAttribute('v-show');
     var model = node.getAttribute('v-model');
@@ -16,8 +22,9 @@ var paserNode = function (node) {
     var vIf = node.getAttribute('v-if');
     var vElse = node.hasAttribute('v-else');
     var textContent = node.textContent;
+    var $model=this.$model;
     if (textContent) {
-        text = this.stringParse(textContent);
+        text = stringParse(textContent);
     }
 
     if (text) {
@@ -27,8 +34,8 @@ var paserNode = function (node) {
         scope.show = show;
     }
     if (model) {
-        if (!obj.hasOwnProperty(model)) {
-            obj[model] = '';
+        if (!$model.hasOwnProperty(model)) {
+            $model[model] = '';
         }
         scope.model = model;
         node.addEventListener('input', this.onchange.bind(this, model), false);
@@ -39,7 +46,7 @@ var paserNode = function (node) {
         scope.$end = newNode;
         scope.$arrayCache = [];
         scope.$domCache = [];
-        scope.$list = obj[t_array[2]];
+        scope.$list = $model[t_array[2]];
         scope.$key = t_array[0];
         replaceNode(newNode, node);
     }

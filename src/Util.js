@@ -85,4 +85,10 @@ var createFragment = function () {
     return document.createDocumentFragment();
 };
 
-export {createAnchor,contrastArray,correctDom,singleDom,replaceNode,judgeNull,stringParse,createFragment}
+var removeAttribute = function (node, attr) {
+    if (node.hasAttribute(attr)) {
+        node.removeAttribute(attr);
+    }
+};
+
+export {createAnchor,contrastArray,correctDom,singleDom,replaceNode,judgeNull,stringParse,createFragment,removeAttribute}

@@ -2,7 +2,7 @@ module.exports = {
     entry: './src/init.js',
     output: {
         path: 'dist',
-        filename: 'bundle.js'
+        filename: 'mvvm.js'
     },
     module: {
         loaders: [

@@ -1,8 +1,9 @@
-import watch from './watch';
+import Watch from './watch';
 import render from './update'
 
 var observe = function () {
-    watch(obj, render.bind(this));
+    var model=this.$model
+    Watch.call(this,model, render.bind(this));
 };
 
 export default observe

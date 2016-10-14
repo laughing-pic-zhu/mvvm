@@ -1,4 +1,4 @@
-import {createFragment} from './util'
+import {createFragment,singleDom,contrastArray,correctDom,judgeNull,removeAttribute} from './util'
 
 var textChange = function (item, content) {
     var node = item.$node;
@@ -50,7 +50,7 @@ var ifChange = function (item, judge) {
     var parentNode = item.$parentNode;
     var flag;
     if (judge) {
-        this.removeAttribute(node, 'v-if');
+        removeAttribute(node, 'v-if');
         parentNode.appendChild(node);
         flag = true;
     } else {
@@ -65,7 +65,7 @@ var elseChange = function (item) {
     var flag = !node.judge;
     var parentNode = item.$parentNode;
     if (flag) {
-        this.removeAttribute(node, 'v-else');
+        removeAttribute(node, 'v-else');
         parentNode.appendChild(node);
     } else {
         parentNode.removeChild(node);
@@ -73,16 +73,17 @@ var elseChange = function (item) {
 };
 
 var render = function () {
-    var cache = this.cache;
+    var cache = this.$cache;
+    var model=this.$model;
     cache.forEach(function (item) {
         if (judgeNull(item.text)) {
             item.$textContent = true;
-            textChange(item, obj[item.text]);
+            textChange(item, model[item.text]);
         }
 
         if (judgeNull(item.show)) {
             var value;
-            if (obj[item.show]) {
+            if (model[item.show]) {
                 value = 'block';
             } else {
                 value = 'none';
@@ -91,7 +92,7 @@ var render = function () {
         }
 
         if (judgeNull(item.model)) {
-            valueChange(item, obj[item.model]);
+            valueChange(item, model[item.model]);
         }
 
         if (judgeNull(item.$list)) {
@@ -99,7 +100,7 @@ var render = function () {
         }
 
         if (judgeNull(item.if)) {
-            ifChange(item, obj[item.if]);
+            ifChange(item, model[item.if]);
         }
 
         if (judgeNull(item.else)) {
