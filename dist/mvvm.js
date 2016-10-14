@@ -73,6 +73,7 @@
 	    _observe2.default.call(this);
 	    _update2.default.call(this);
 	};
+
 	window.MVVM = MVVM;
 
 /***/ },
