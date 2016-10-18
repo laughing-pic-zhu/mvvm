@@ -84,7 +84,7 @@ var paserNode = function (node) {
         scope.if = vIf;
         var descriptor={
             expression:'v-if',
-            key:vIf
+            raw:vIf
         };
         direct_array.push(new Directive(descriptor,$model,node));
     }
@@ -93,7 +93,7 @@ var paserNode = function (node) {
         scope.else = true;
         var descriptor={
             expression:'v-else',
-            key:vElse
+            raw:vElse
         };
         direct_array.push(new Directive(descriptor,$model,node));
     }

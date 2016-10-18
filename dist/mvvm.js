@@ -203,7 +203,7 @@
 	        scope.if = vIf;
 	        var descriptor = {
 	            expression: 'v-if',
-	            key: vIf
+	            raw: vIf
 	        };
 	        direct_array.push(new _directive2.default(descriptor, $model, node));
 	    }
@@ -212,7 +212,7 @@
 	        scope.else = true;
 	        var descriptor = {
 	            expression: 'v-else',
-	            key: vElse
+	            raw: vElse
 	        };
 	        direct_array.push(new _directive2.default(descriptor, $model, node));
 	    }
