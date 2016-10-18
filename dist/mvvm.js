@@ -54,11 +54,11 @@
 
 	var _parse2 = _interopRequireDefault(_parse);
 
-	var _observe = __webpack_require__(4);
+	var _observe = __webpack_require__(5);
 
 	var _observe2 = _interopRequireDefault(_observe);
 
-	var _update = __webpack_require__(6);
+	var _update = __webpack_require__(7);
 
 	var _update2 = _interopRequireDefault(_update);
 
@@ -114,6 +114,12 @@
 
 	var _util = __webpack_require__(3);
 
+	var _directive = __webpack_require__(4);
+
+	var _directive2 = _interopRequireDefault(_directive);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 	var parse = function parse() {
 	    this.$cache = this.$cache.map(function (node) {
 	        return paserNode.call(this, node);
@@ -124,9 +130,15 @@
 	    this.$parentNode = node.parentNode;
 	    this.$nextNode = node.nextElementSibling;
 	    this.$node = node;
+	    this.$direct_array = [];
+	};
+
+	var onchange = function onchange(attr) {
+	    this.$model[attr] = event.target.value;
 	};
 
 	var paserNode = function paserNode(node) {
+	    var vm = this.$vm;
 	    var scope = {};
 	    storageDom.call(scope, node);
 	    var text = node.getAttribute('v-text');
@@ -137,22 +149,39 @@
 	    var vElse = node.hasAttribute('v-else');
 	    var textContent = node.textContent;
 	    var $model = this.$model;
+	    var direct_array = scope.$direct_array;
 	    if (textContent) {
 	        text = (0, _util.stringParse)(textContent);
 	    }
 
 	    if (text) {
 	        scope.text = text;
+	        var descriptor = {
+	            expression: 'v-text',
+	            raw: text
+	        };
+	        direct_array.push(new _directive2.default(descriptor, $model, node));
 	    }
 	    if (show) {
 	        scope.show = show;
+	        var descriptor = {
+	            expression: 'v-show',
+	            raw: show,
+	            key: 'display'
+	        };
+	        direct_array.push(new _directive2.default(descriptor, $model, node));
 	    }
 	    if (model) {
 	        if (!$model.hasOwnProperty(model)) {
 	            $model[model] = '';
 	        }
 	        scope.model = model;
-	        node.addEventListener('input', this.onchange.bind(this, model), false);
+	        var descriptor = {
+	            expression: 'v-model',
+	            raw: model
+	        };
+	        direct_array.push(new _directive2.default(descriptor, $model, node));
+	        node.addEventListener('input', onchange.bind(this, model), false);
 	    }
 	    if (vFor) {
 	        var t_array = vFor.split(/\s+/);
@@ -163,13 +192,29 @@
 	        scope.$list = $model[t_array[2]];
 	        scope.$key = t_array[0];
 	        (0, _util.replaceNode)(newNode, node);
+	        var descriptor = {
+	            expression: 'v-for',
+	            list: t_array[2],
+	            key: t_array[0]
+	        };
+	        direct_array.push(new _directive2.default(descriptor, $model, node));
 	    }
 	    if (vIf) {
 	        scope.if = vIf;
+	        var descriptor = {
+	            expression: 'v-if',
+	            key: vIf
+	        };
+	        direct_array.push(new _directive2.default(descriptor, $model, node));
 	    }
 
 	    if (vElse) {
 	        scope.else = true;
+	        var descriptor = {
+	            expression: 'v-else',
+	            key: vElse
+	        };
+	        direct_array.push(new _directive2.default(descriptor, $model, node));
 	    }
 
 	    return scope;
@@ -291,6 +336,33 @@
 
 /***/ },
 /* 4 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	function Directive(descriptor, vm, el) {
+	    this.descriptor = descriptor;
+	    this.vm = vm;
+	    this.el = el;
+	    el._directive = el._directive || [];
+	    el._directive.push(this);
+	}
+
+	Directive.prototype.bind = function () {
+	    console.log('bind');
+	};
+
+	Directive.prototype.unbind = function () {
+	    console.log('unbind');
+	};
+
+	exports.default = Directive;
+
+/***/ },
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -299,11 +371,11 @@
 	    value: true
 	});
 
-	var _watch = __webpack_require__(5);
+	var _watch = __webpack_require__(6);
 
 	var _watch2 = _interopRequireDefault(_watch);
 
-	var _update = __webpack_require__(6);
+	var _update = __webpack_require__(7);
 
 	var _update2 = _interopRequireDefault(_update);
 
@@ -317,7 +389,7 @@
 	exports.default = observe;
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -381,7 +453,7 @@
 	exports.default = Watch;
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -392,32 +464,46 @@
 
 	var _util = __webpack_require__(3);
 
-	var textChange = function textChange(item, content) {
-	    var node = item.$node;
+	var textUpdate = function textUpdate(item) {
+	    var node = this.$node;
+	    var descriptor = item.descriptor;
+	    var raw = descriptor.raw;
+	    var vm = item.vm;
+	    var content = vm[raw];
 	    if (typeof content == 'function') {
-	        content = content.apply(this.$model);
+	        content = content.apply(vm);
 	    }
 	    node.textContent = content || '';
 	};
 
-	var styleChange = function styleChange(item, key, value) {
-	    var node = item.$node;
+	var styleUpdate = function styleUpdate(item) {
+	    var node = this.$node;
+	    var descriptor = item.descriptor;
+	    var key = descriptor.key;
+	    var raw = descriptor.raw;
+	    var vm = item.vm;
+	    var value = vm[raw] ? 'block' : 'none';
 	    node.style[key] = value;
 	};
 
-	var valueChange = function valueChange(item, content) {
-	    var node = item.$node;
+	var valueUpdate = function valueUpdate(item) {
+	    var node = this.$node;
+	    var descriptor = item.descriptor;
+	    var raw = descriptor.raw;
+	    var vm = item.vm;
+	    var content = vm[raw];
+
 	    node.value = content || '';
 	};
 
-	var listChange = function listChange(item) {
-	    var parentNode = item.$parentNode;
-	    var node = item.$node;
-	    var end = item.$end;
-	    var list = item.$list;
-	    var value = item.$key;
-	    var arrayCache = item.$arrayCache;
-	    var domCache = item.$domCache;
+	var listUpdate = function listUpdate(item) {
+	    var parentNode = this.$parentNode;
+	    var node = this.$node;
+	    var end = this.$end;
+	    var list = this.$list;
+	    var value = this.$key;
+	    var arrayCache = this.$arrayCache;
+	    var domCache = this.$domCache;
 	    if (arrayCache.length == 0) {
 	        list.forEach(function (_item) {
 	            var fragment = (0, _util.createFragment)();
@@ -431,14 +517,18 @@
 	        });
 	    } else {
 	        var diff = (0, _util.contrastArray)(arrayCache, list);
-	        (0, _util.correctDom)(item, diff);
+	        (0, _util.correctDom)(this, diff);
 	    }
 	};
 
-	var ifChange = function ifChange(item, judge) {
-	    var node = item.$node;
-	    var nextNode = item.$nextNode;
-	    var parentNode = item.$parentNode;
+	var ifUpdate = function ifUpdate(item) {
+	    var descriptor = item.descriptor;
+	    var raw = descriptor.raw;
+	    var vm = item.vm;
+	    var judge = vm[raw];
+	    var node = this.$node;
+	    var nextNode = this.$nextNode;
+	    var parentNode = this.$parentNode;
 	    var flag;
 	    if (judge) {
 	        (0, _util.removeAttribute)(node, 'v-if');
@@ -451,10 +541,10 @@
 	    nextNode.judge = flag;
 	};
 
-	var elseChange = function elseChange(item) {
-	    var node = item.$node;
+	var elseUpdate = function elseUpdate() {
+	    var node = this.$node;
 	    var flag = !node.judge;
-	    var parentNode = item.$parentNode;
+	    var parentNode = this.$parentNode;
 	    if (flag) {
 	        (0, _util.removeAttribute)(node, 'v-else');
 	        parentNode.appendChild(node);
@@ -463,43 +553,29 @@
 	    }
 	};
 
+	var update = function update() {};
+
 	var render = function render() {
 	    var cache = this.$cache;
 	    var model = this.$model;
 	    cache.forEach(function (item) {
-	        if ((0, _util.judgeNull)(item.text)) {
-	            item.$textContent = true;
-	            textChange(item, model[item.text]);
-	        }
-
-	        if ((0, _util.judgeNull)(item.show)) {
-	            var value;
-	            if (model[item.show]) {
-	                value = 'block';
-	            } else {
-	                value = 'none';
-	            }
-	            styleChange(item, 'display', value);
-	        }
-
-	        if ((0, _util.judgeNull)(item.model)) {
-	            valueChange(item, model[item.model]);
-	        }
-
-	        if ((0, _util.judgeNull)(item.$list)) {
-	            listChange(item);
-	        }
-
-	        if ((0, _util.judgeNull)(item.if)) {
-	            ifChange(item, model[item.if]);
-	        }
-
-	        if ((0, _util.judgeNull)(item.else)) {
-	            elseChange(item);
-	        }
+	        var $direct_array = item.$direct_array;
+	        $direct_array.forEach(function (_item) {
+	            var descriptor = _item.descriptor;
+	            var expression = descriptor.expression;
+	            type_array[expression].call(item, _item);
+	        });
 	    });
 	};
 
+	var type_array = {
+	    'v-text': textUpdate,
+	    'v-show': styleUpdate,
+	    'v-model': valueUpdate,
+	    'v-for': listUpdate,
+	    'v-if': ifUpdate,
+	    'v-else': elseUpdate
+	};
 	exports.default = render;
 
 /***/ }

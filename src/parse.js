@@ -1,4 +1,5 @@
 import {createAnchor,contrastArray,correctDom,singleDom,replaceNode,judgeNull,stringParse} from './util'
+import Directive from './directive';
 
 var parse = function () {
     this.$cache = this.$cache.map(function (node) {
@@ -10,9 +11,15 @@ var storageDom = function (node) {
     this.$parentNode = node.parentNode;
     this.$nextNode = node.nextElementSibling;
     this.$node = node;
+    this.$direct_array=[];
+};
+
+var onchange = function (attr) {
+    this.$model[attr] = event.target.value;
 };
 
 var paserNode = function (node) {
+    var vm=this.$vm;
     var scope = {};
     storageDom.call(scope, node);
     var text = node.getAttribute('v-text');
@@ -23,22 +30,39 @@ var paserNode = function (node) {
     var vElse = node.hasAttribute('v-else');
     var textContent = node.textContent;
     var $model=this.$model;
+    var direct_array=scope.$direct_array;
     if (textContent) {
         text = stringParse(textContent);
     }
 
     if (text) {
         scope.text = text;
+        var descriptor={
+            expression:'v-text',
+            raw:text
+        };
+        direct_array.push(new Directive(descriptor,$model,node));
     }
     if (show) {
         scope.show = show;
+        var descriptor={
+            expression:'v-show',
+            raw:show,
+            key:'display'
+        };
+        direct_array.push(new Directive(descriptor,$model,node));
     }
     if (model) {
         if (!$model.hasOwnProperty(model)) {
             $model[model] = '';
         }
         scope.model = model;
-        node.addEventListener('input', this.onchange.bind(this, model), false);
+        var descriptor={
+            expression:'v-model',
+            raw:model
+        };
+        direct_array.push(new Directive(descriptor,$model,node));
+        node.addEventListener('input', onchange.bind(this, model), false);
     }
     if (vFor) {
         var t_array = vFor.split(/\s+/);
@@ -49,13 +73,29 @@ var paserNode = function (node) {
         scope.$list = $model[t_array[2]];
         scope.$key = t_array[0];
         replaceNode(newNode, node);
+        var descriptor={
+            expression:'v-for',
+            list:t_array[2],
+            key:t_array[0]
+        };
+        direct_array.push(new Directive(descriptor,$model,node));
     }
     if (vIf) {
         scope.if = vIf;
+        var descriptor={
+            expression:'v-if',
+            key:vIf
+        };
+        direct_array.push(new Directive(descriptor,$model,node));
     }
 
     if (vElse) {
         scope.else = true;
+        var descriptor={
+            expression:'v-else',
+            key:vElse
+        };
+        direct_array.push(new Directive(descriptor,$model,node));
     }
 
     return scope;
