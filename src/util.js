@@ -20,38 +20,7 @@ var contrastArray = function (_old, _new) {
     return a;
 };
 
-var correctDom = function (item, _item,diff) {
-    var diffArray = diff.slice();
-    var domCache = item.$domCache;
-    var arrayCache = item.$arrayCache;
-    var node = item.$node;
-    var end = item.$end;
-    var parentNode = item.$parentNode;
-    var descriptor=_item.descriptor;
-    var obj = descriptor.obj;
-    var vm=_item.vm;
-    var list = vm[descriptor.list];
-    diffArray.forEach(function (_item) {
-        var fragment = createFragment();
-        var newNode = node.cloneNode(true);
-        if (list[_item]) {
-            singleDom(node, newNode, obj, list[_item]);
-        } else {
-            parentNode.removeChild(domCache[_item]);
-            delete domCache[_item];
-            delete arrayCache[_item];
-            return;
-        }
-        fragment.appendChild(newNode);
-        if (domCache[_item]) {
-            replaceNode(fragment, domCache[_item]);
-        } else {
-            parentNode.insertBefore(fragment, end);
-        }
-        domCache[_item] = newNode;
-        arrayCache[_item]=list[_item];
-    });
-};
+
 
 var singleDom = function (node, newNode, value, _item) {
     var textContent = node.getAttribute('v-text');
@@ -92,4 +61,4 @@ var removeAttribute = function (node, attr) {
     }
 };
 
-export {createAnchor,contrastArray,correctDom,singleDom,replaceNode,judgeNull,stringParse,createFragment,removeAttribute}
+export {createAnchor,contrastArray,singleDom,replaceNode,judgeNull,stringParse,createFragment,removeAttribute}

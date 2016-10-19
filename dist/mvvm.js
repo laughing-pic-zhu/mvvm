@@ -138,7 +138,6 @@
 	};
 
 	var paserNode = function paserNode(node) {
-	    var vm = this.$vm;
 	    var scope = {};
 	    storageDom.call(scope, node);
 	    var text = node.getAttribute('v-text');
@@ -259,39 +258,6 @@
 	    return a;
 	};
 
-	var correctDom = function correctDom(item, _item, diff) {
-	    var diffArray = diff.slice();
-	    var domCache = item.$domCache;
-	    var arrayCache = item.$arrayCache;
-	    var node = item.$node;
-	    var end = item.$end;
-	    var parentNode = item.$parentNode;
-	    var descriptor = _item.descriptor;
-	    var obj = descriptor.obj;
-	    var vm = _item.vm;
-	    var list = vm[descriptor.list];
-	    diffArray.forEach(function (_item) {
-	        var fragment = createFragment();
-	        var newNode = node.cloneNode(true);
-	        if (list[_item]) {
-	            singleDom(node, newNode, obj, list[_item]);
-	        } else {
-	            parentNode.removeChild(domCache[_item]);
-	            delete domCache[_item];
-	            delete arrayCache[_item];
-	            return;
-	        }
-	        fragment.appendChild(newNode);
-	        if (domCache[_item]) {
-	            replaceNode(fragment, domCache[_item]);
-	        } else {
-	            parentNode.insertBefore(fragment, end);
-	        }
-	        domCache[_item] = newNode;
-	        arrayCache[_item] = list[_item];
-	    });
-	};
-
 	var singleDom = function singleDom(node, newNode, value, _item) {
 	    var textContent = node.getAttribute('v-text');
 	    if (textContent == value) {
@@ -333,7 +299,6 @@
 
 	exports.createAnchor = createAnchor;
 	exports.contrastArray = contrastArray;
-	exports.correctDom = correctDom;
 	exports.singleDom = singleDom;
 	exports.replaceNode = replaceNode;
 	exports.judgeNull = judgeNull;
@@ -471,11 +436,11 @@
 
 	var _util = __webpack_require__(3);
 
-	var textUpdate = function textUpdate(item) {
+	var textUpdate = function textUpdate(directive) {
 	    var node = this.$node;
-	    var descriptor = item.descriptor;
+	    var descriptor = directive.descriptor;
 	    var raw = descriptor.raw;
-	    var vm = item.vm;
+	    var vm = directive.vm;
 	    var content = vm[raw];
 	    if (typeof content == 'function') {
 	        content = content.apply(vm);
@@ -483,29 +448,29 @@
 	    node.textContent = content || '';
 	};
 
-	var styleUpdate = function styleUpdate(item) {
+	var styleUpdate = function styleUpdate(directive) {
 	    var node = this.$node;
-	    var descriptor = item.descriptor;
+	    var descriptor = directive.descriptor;
 	    var key = descriptor.key;
 	    var raw = descriptor.raw;
-	    var vm = item.vm;
+	    var vm = directive.vm;
 	    var value = vm[raw] ? 'block' : 'none';
 	    node.style[key] = value;
 	};
 
-	var valueUpdate = function valueUpdate(item) {
+	var valueUpdate = function valueUpdate(directive) {
 	    var node = this.$node;
-	    var descriptor = item.descriptor;
+	    var descriptor = directive.descriptor;
 	    var raw = descriptor.raw;
-	    var vm = item.vm;
+	    var vm = directive.vm;
 	    var content = vm[raw];
 
 	    node.value = content || '';
 	};
 
-	var listUpdate = function listUpdate(item) {
-	    var descriptor = item.descriptor;
-	    var vm = item.vm;
+	var listUpdate = function listUpdate(directive) {
+	    var descriptor = directive.descriptor;
+	    var vm = directive.vm;
 	    var list = vm[descriptor.list];
 	    var obj = descriptor.obj;
 
@@ -514,6 +479,7 @@
 	    var end = this.$end;
 	    var arrayCache = this.$arrayCache;
 	    var domCache = this.$domCache;
+
 	    if (arrayCache.length == 0) {
 	        list.forEach(function (_item) {
 	            var fragment = (0, _util.createFragment)();
@@ -526,14 +492,48 @@
 	        });
 	    } else {
 	        var diff = (0, _util.contrastArray)(arrayCache, list);
-	        (0, _util.correctDom)(this, item, diff);
+	        correctDom.call(this, directive, diff);
 	    }
 	};
 
-	var ifUpdate = function ifUpdate(item) {
+	var correctDom = function correctDom(directive, diff) {
+	    var diffArray = diff.slice();
+	    var domCache = this.$domCache;
+	    var arrayCache = this.$arrayCache;
+	    var node = this.$node;
+	    var end = this.$end;
+	    var parentNode = this.$parentNode;
+
+	    var descriptor = directive.descriptor;
+	    var obj = descriptor.obj;
+	    var vm = directive.vm;
+	    var list = vm[descriptor.list];
+	    diffArray.forEach(function (_item) {
+	        var fragment = (0, _util.createFragment)();
+	        var newNode = node.cloneNode(true);
+	        if (list[_item]) {
+	            (0, _util.singleDom)(node, newNode, obj, list[_item]);
+	        } else {
+	            parentNode.removeChild(domCache[_item]);
+	            delete domCache[_item];
+	            delete arrayCache[_item];
+	            return;
+	        }
+	        fragment.appendChild(newNode);
+	        if (domCache[_item]) {
+	            replaceNode(fragment, domCache[_item]);
+	        } else {
+	            parentNode.insertBefore(fragment, end);
+	        }
+	        domCache[_item] = newNode;
+	        arrayCache[_item] = list[_item];
+	    });
+	};
+
+	var ifUpdate = function ifUpdate(directive) {
 	    var descriptor = item.descriptor;
 	    var raw = descriptor.raw;
-	    var vm = item.vm;
+	    var vm = directive.vm;
 	    var judge = vm[raw];
 	    var node = this.$node;
 	    var nextNode = this.$nextNode;
@@ -566,13 +566,12 @@
 
 	var render = function render() {
 	    var cache = this.$cache;
-	    var model = this.$model;
 	    cache.forEach(function (item) {
 	        var $direct_array = item.$direct_array;
-	        $direct_array.forEach(function (_item) {
-	            var descriptor = _item.descriptor;
+	        $direct_array.forEach(function (directive) {
+	            var descriptor = directive.descriptor;
 	            var expression = descriptor.expression;
-	            type_array[expression].call(item, _item);
+	            type_array[expression].call(item, directive);
 	        });
 	    });
 	};

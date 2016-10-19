@@ -1,4 +1,4 @@
-import {createAnchor,contrastArray,correctDom,singleDom,replaceNode,judgeNull,stringParse,removeAttribute} from './util'
+import {createAnchor,contrastArray,singleDom,replaceNode,judgeNull,stringParse,removeAttribute} from './util'
 import Directive from './directive';
 
 var parse = function () {
@@ -19,7 +19,6 @@ var onchange = function (attr) {
 };
 
 var paserNode = function (node) {
-    var vm=this.$vm;
     var scope = {};
     storageDom.call(scope, node);
     var text = node.getAttribute('v-text');
