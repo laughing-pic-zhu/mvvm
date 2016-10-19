@@ -1,4 +1,4 @@
-import {createAnchor,contrastArray,correctDom,singleDom,replaceNode,judgeNull,stringParse} from './util'
+import {createAnchor,contrastArray,correctDom,singleDom,replaceNode,judgeNull,stringParse,removeAttribute} from './util'
 import Directive from './directive';
 
 var parse = function () {
@@ -41,6 +41,7 @@ var paserNode = function (node) {
             expression:'v-text',
             raw:text
         };
+        removeAttribute(node,'v-text');
         direct_array.push(new Directive(descriptor,$model,node));
     }
     if (show) {
@@ -50,6 +51,7 @@ var paserNode = function (node) {
             raw:show,
             key:'display'
         };
+        removeAttribute(node,'v-show');
         direct_array.push(new Directive(descriptor,$model,node));
     }
     if (model) {
@@ -61,6 +63,7 @@ var paserNode = function (node) {
             expression:'v-model',
             raw:model
         };
+        removeAttribute(node,'v-model');
         direct_array.push(new Directive(descriptor,$model,node));
         node.addEventListener('input', onchange.bind(this, model), false);
     }
@@ -70,14 +73,15 @@ var paserNode = function (node) {
         scope.$end = newNode;
         scope.$arrayCache = [];
         scope.$domCache = [];
-        scope.$list = $model[t_array[2]];
-        scope.$key = t_array[0];
+
         replaceNode(newNode, node);
         var descriptor={
             expression:'v-for',
             list:t_array[2],
-            key:t_array[0]
+            obj:t_array[0]
         };
+
+        removeAttribute(node,'v-for');
         direct_array.push(new Directive(descriptor,$model,node));
     }
     if (vIf) {
@@ -86,6 +90,7 @@ var paserNode = function (node) {
             expression:'v-if',
             raw:vIf
         };
+        removeAttribute(node,'v-if');
         direct_array.push(new Directive(descriptor,$model,node));
     }
 
@@ -95,6 +100,7 @@ var paserNode = function (node) {
             expression:'v-else',
             raw:vElse
         };
+        removeAttribute(node,'v-else');
         direct_array.push(new Directive(descriptor,$model,node));
     }
 

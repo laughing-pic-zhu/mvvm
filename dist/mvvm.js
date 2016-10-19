@@ -160,6 +160,7 @@
 	            expression: 'v-text',
 	            raw: text
 	        };
+	        (0, _util.removeAttribute)(node, 'v-text');
 	        direct_array.push(new _directive2.default(descriptor, $model, node));
 	    }
 	    if (show) {
@@ -169,6 +170,7 @@
 	            raw: show,
 	            key: 'display'
 	        };
+	        (0, _util.removeAttribute)(node, 'v-show');
 	        direct_array.push(new _directive2.default(descriptor, $model, node));
 	    }
 	    if (model) {
@@ -180,6 +182,7 @@
 	            expression: 'v-model',
 	            raw: model
 	        };
+	        (0, _util.removeAttribute)(node, 'v-model');
 	        direct_array.push(new _directive2.default(descriptor, $model, node));
 	        node.addEventListener('input', onchange.bind(this, model), false);
 	    }
@@ -189,14 +192,15 @@
 	        scope.$end = newNode;
 	        scope.$arrayCache = [];
 	        scope.$domCache = [];
-	        scope.$list = $model[t_array[2]];
-	        scope.$key = t_array[0];
+
 	        (0, _util.replaceNode)(newNode, node);
 	        var descriptor = {
 	            expression: 'v-for',
 	            list: t_array[2],
-	            key: t_array[0]
+	            obj: t_array[0]
 	        };
+
+	        (0, _util.removeAttribute)(node, 'v-for');
 	        direct_array.push(new _directive2.default(descriptor, $model, node));
 	    }
 	    if (vIf) {
@@ -205,6 +209,7 @@
 	            expression: 'v-if',
 	            raw: vIf
 	        };
+	        (0, _util.removeAttribute)(node, 'v-if');
 	        direct_array.push(new _directive2.default(descriptor, $model, node));
 	    }
 
@@ -214,6 +219,7 @@
 	            expression: 'v-else',
 	            raw: vElse
 	        };
+	        (0, _util.removeAttribute)(node, 'v-else');
 	        direct_array.push(new _directive2.default(descriptor, $model, node));
 	    }
 
@@ -253,21 +259,22 @@
 	    return a;
 	};
 
-	var correctDom = function correctDom(item, diff) {
+	var correctDom = function correctDom(item, _item, diff) {
 	    var diffArray = diff.slice();
 	    var domCache = item.$domCache;
 	    var arrayCache = item.$arrayCache;
 	    var node = item.$node;
 	    var end = item.$end;
 	    var parentNode = item.$parentNode;
-	    var value = item.$key;
-	    var list = item.$list;
+	    var descriptor = _item.descriptor;
+	    var obj = descriptor.obj;
+	    var vm = _item.vm;
+	    var list = vm[descriptor.list];
 	    diffArray.forEach(function (_item) {
 	        var fragment = createFragment();
 	        var newNode = node.cloneNode(true);
-	        newNode.removeAttribute('v-for');
 	        if (list[_item]) {
-	            singleDom(node, newNode, value, list[_item]);
+	            singleDom(node, newNode, obj, list[_item]);
 	        } else {
 	            parentNode.removeChild(domCache[_item]);
 	            delete domCache[_item];
@@ -497,19 +504,21 @@
 	};
 
 	var listUpdate = function listUpdate(item) {
+	    var descriptor = item.descriptor;
+	    var vm = item.vm;
+	    var list = vm[descriptor.list];
+	    var obj = descriptor.obj;
+
 	    var parentNode = this.$parentNode;
 	    var node = this.$node;
 	    var end = this.$end;
-	    var list = this.$list;
-	    var value = this.$key;
 	    var arrayCache = this.$arrayCache;
 	    var domCache = this.$domCache;
 	    if (arrayCache.length == 0) {
 	        list.forEach(function (_item) {
 	            var fragment = (0, _util.createFragment)();
 	            var newNode = node.cloneNode(true);
-	            newNode.removeAttribute('v-for');
-	            (0, _util.singleDom)(node, newNode, value, _item);
+	            (0, _util.singleDom)(node, newNode, obj, _item);
 	            fragment.appendChild(newNode);
 	            parentNode.insertBefore(fragment, end);
 	            arrayCache.push(_item);
@@ -517,7 +526,7 @@
 	        });
 	    } else {
 	        var diff = (0, _util.contrastArray)(arrayCache, list);
-	        (0, _util.correctDom)(this, diff);
+	        (0, _util.correctDom)(this, item, diff);
 	    }
 	};
 

@@ -20,21 +20,22 @@ var contrastArray = function (_old, _new) {
     return a;
 };
 
-var correctDom = function (item, diff) {
+var correctDom = function (item, _item,diff) {
     var diffArray = diff.slice();
     var domCache = item.$domCache;
     var arrayCache = item.$arrayCache;
     var node = item.$node;
     var end = item.$end;
     var parentNode = item.$parentNode;
-    var value = item.$key;
-    var list = item.$list;
+    var descriptor=_item.descriptor;
+    var obj = descriptor.obj;
+    var vm=_item.vm;
+    var list = vm[descriptor.list];
     diffArray.forEach(function (_item) {
         var fragment = createFragment();
         var newNode = node.cloneNode(true);
-        newNode.removeAttribute('v-for');
         if (list[_item]) {
-            singleDom(node, newNode, value, list[_item]);
+            singleDom(node, newNode, obj, list[_item]);
         } else {
             parentNode.removeChild(domCache[_item]);
             delete domCache[_item];

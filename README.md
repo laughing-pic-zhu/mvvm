@@ -16,7 +16,7 @@
         show: false
     };
     
-    var vm=new laugh({
+    var vm=new MVVM({
         el:'#person',
         data:obj
     });

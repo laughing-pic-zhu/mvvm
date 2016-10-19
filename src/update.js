@@ -33,19 +33,22 @@ var valueUpdate = function (item) {
 };
 
 var listUpdate = function (item) {
+    var descriptor=item.descriptor;
+    var vm = item.vm;
+    var list=vm[descriptor.list];
+    var obj=descriptor.obj;
+
+
     var parentNode = this.$parentNode;
     var node = this.$node;
     var end = this.$end;
-    var list = this.$list;
-    var value = this.$key;
     var arrayCache = this.$arrayCache;
     var domCache = this.$domCache;
     if (arrayCache.length == 0) {
         list.forEach(function (_item) {
             var fragment = createFragment();
             var newNode = node.cloneNode(true);
-            newNode.removeAttribute('v-for');
-            singleDom(node, newNode, value, _item);
+            singleDom(node, newNode, obj, _item);
             fragment.appendChild(newNode);
             parentNode.insertBefore(fragment, end);
             arrayCache.push(_item);
@@ -53,7 +56,7 @@ var listUpdate = function (item) {
         });
     } else {
         var diff = contrastArray(arrayCache, list);
-        correctDom(this, diff);
+        correctDom(this, item,diff);
     }
 };
 
