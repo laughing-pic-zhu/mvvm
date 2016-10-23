@@ -50,7 +50,7 @@
 
 	var _compile2 = _interopRequireDefault(_compile);
 
-	var _parse = __webpack_require__(2);
+	var _parse = __webpack_require__(3);
 
 	var _parse2 = _interopRequireDefault(_parse);
 
@@ -78,32 +78,6 @@
 
 /***/ },
 /* 1 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	var compile = function compile(dom) {
-	    addQueue.call(this, dom);
-	};
-
-	var addQueue = function addQueue(nodes) {
-	    if (nodes.nodeType == 1) {
-	        this.$cache.push(nodes);
-	        if (nodes.hasChildNodes()) {
-	            nodes.childNodes.forEach(function (item) {
-	                addQueue.call(this, item);
-	            }, this);
-	        }
-	    }
-	};
-
-	exports.default = compile;
-
-/***/ },
-/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -112,123 +86,47 @@
 	    value: true
 	});
 
-	var _util = __webpack_require__(3);
+	var _util = __webpack_require__(2);
 
-	var _directive = __webpack_require__(4);
+	var type_array = ['v-text', 'v-show', 'v-model', 'v-for', 'v-if', 'v-else'];
 
-	var _directive2 = _interopRequireDefault(_directive);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var parse = function parse() {
-	    this.$cache = this.$cache.map(function (node) {
-	        return paserNode.call(this, node);
-	    }, this);
+	var compile = function compile(dom) {
+	    addQueue.call(this, dom);
 	};
 
-	var storageDom = function storageDom(node) {
-	    this.$parentNode = node.parentNode;
-	    this.$nextNode = node.nextElementSibling;
-	    this.$node = node;
-	    this.$direct_array = [];
-	};
-
-	var onchange = function onchange(attr) {
-	    this.$model[attr] = event.target.value;
-	};
-
-	var paserNode = function paserNode(node) {
-	    var scope = {};
-	    storageDom.call(scope, node);
-	    var text = node.getAttribute('v-text');
-	    var show = node.getAttribute('v-show');
-	    var model = node.getAttribute('v-model');
-	    var vFor = node.getAttribute('v-for');
-	    var vIf = node.getAttribute('v-if');
-	    var vElse = node.hasAttribute('v-else');
-	    var textContent = node.textContent;
-	    var $model = this.$model;
-	    var direct_array = scope.$direct_array;
-	    if (textContent) {
-	        text = (0, _util.stringParse)(textContent);
-	    }
-
-	    if (text) {
-	        scope.text = text;
-	        var descriptor = {
-	            expression: 'v-text',
-	            raw: text
-	        };
-	        (0, _util.removeAttribute)(node, 'v-text');
-	        direct_array.push(new _directive2.default(descriptor, $model, node));
-	    }
-	    if (show) {
-	        scope.show = show;
-	        var descriptor = {
-	            expression: 'v-show',
-	            raw: show,
-	            key: 'display'
-	        };
-	        (0, _util.removeAttribute)(node, 'v-show');
-	        direct_array.push(new _directive2.default(descriptor, $model, node));
-	    }
-	    if (model) {
-	        if (!$model.hasOwnProperty(model)) {
-	            $model[model] = '';
+	var addQueue = function addQueue(nodes) {
+	    if (nodes.nodeType == 1) {
+	        if (hasDirective(nodes)) {
+	            this.$cache.push(nodes);
 	        }
-	        scope.model = model;
-	        var descriptor = {
-	            expression: 'v-model',
-	            raw: model
-	        };
-	        (0, _util.removeAttribute)(node, 'v-model');
-	        direct_array.push(new _directive2.default(descriptor, $model, node));
-	        node.addEventListener('input', onchange.bind(this, model), false);
+	        if (nodes.hasChildNodes()) {
+	            nodes.childNodes.forEach(function (item) {
+	                addQueue.call(this, item);
+	            }, this);
+	        }
 	    }
-	    if (vFor) {
-	        var t_array = vFor.split(/\s+/);
-	        var newNode = (0, _util.createAnchor)();
-	        scope.$end = newNode;
-	        scope.$arrayCache = [];
-	        scope.$domCache = [];
-
-	        (0, _util.replaceNode)(newNode, node);
-	        var descriptor = {
-	            expression: 'v-for',
-	            list: t_array[2],
-	            obj: t_array[0]
-	        };
-
-	        (0, _util.removeAttribute)(node, 'v-for');
-	        direct_array.push(new _directive2.default(descriptor, $model, node));
-	    }
-	    if (vIf) {
-	        scope.if = vIf;
-	        var descriptor = {
-	            expression: 'v-if',
-	            raw: vIf
-	        };
-	        (0, _util.removeAttribute)(node, 'v-if');
-	        direct_array.push(new _directive2.default(descriptor, $model, node));
-	    }
-
-	    if (vElse) {
-	        scope.else = true;
-	        var descriptor = {
-	            expression: 'v-else',
-	            raw: vElse
-	        };
-	        (0, _util.removeAttribute)(node, 'v-else');
-	        direct_array.push(new _directive2.default(descriptor, $model, node));
-	    }
-
-	    return scope;
 	};
 
-	exports.default = parse;
+	var hasDirective = function hasDirective(node) {
+	    var flag = false;
+	    type_array.forEach(function (attr) {
+	        if (node.hasAttribute(attr)) {
+	            flag = true;
+	        }
+	    });
+	    if (!flag) {
+	        var textContent = node.textContent;
+	        if (new RegExp(_util.textReg).test(textContent)) {
+	            flag = true;
+	        }
+	    }
+	    return flag;
+	};
+
+	exports.default = compile;
 
 /***/ },
-/* 3 */
+/* 2 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -236,6 +134,8 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
+	var textReg = '^{{(.+)}}$';
+
 	var createAnchor = function createAnchor() {
 	    return document.createTextNode(' ');
 	};
@@ -279,8 +179,7 @@
 	};
 
 	var stringParse = function stringParse(str) {
-	    var reg = /^{{(.+)}}$/;
-	    var array = reg.exec(str);
+	    var array = new RegExp(textReg).exec(str);
 	    if (array) {
 	        return array.slice(1);
 	    }
@@ -305,6 +204,140 @@
 	exports.stringParse = stringParse;
 	exports.createFragment = createFragment;
 	exports.removeAttribute = removeAttribute;
+	exports.textReg = textReg;
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _util = __webpack_require__(2);
+
+	var _directive = __webpack_require__(4);
+
+	var _directive2 = _interopRequireDefault(_directive);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var parse = function parse() {
+	    this.$cache = this.$cache.map(function (node) {
+	        return paserNode.call(this, node);
+	    }, this);
+	};
+
+	var storageDom = function storageDom(node) {
+	    this.$parentNode = node.parentNode;
+	    this.$nextNode = node.nextElementSibling;
+	    this.$node = node;
+	    this.$direct_array = [];
+	};
+
+	var onchange = function onchange(attr) {
+	    this.$model[attr] = event.target.value;
+	};
+
+	var paserNode = function paserNode(node) {
+	    var scope = {};
+	    storageDom.call(scope, node);
+	    var text = node.getAttribute('v-text');
+	    var show = node.getAttribute('v-show');
+	    var model = node.getAttribute('v-model');
+	    var vFor = node.getAttribute('v-for');
+	    var vIf = node.getAttribute('v-if');
+	    var vElse = node.hasAttribute('v-else');
+	    var textContent = node.textContent;
+	    var $model = this.$model;
+	    var direct_array = scope.$direct_array;
+	    var directive;
+	    if (textContent) {
+	        text = (0, _util.stringParse)(textContent);
+	    }
+
+	    if (text) {
+	        scope.text = text;
+	        var descriptor = {
+	            expression: 'v-text',
+	            raw: text
+	        };
+	        (0, _util.removeAttribute)(node, 'v-text');
+	        directive = new _directive2.default(descriptor, $model, node);
+	        direct_array.push(directive);
+	    }
+	    if (show) {
+	        scope.show = show;
+	        var descriptor = {
+	            expression: 'v-show',
+	            raw: show,
+	            key: 'display'
+	        };
+	        (0, _util.removeAttribute)(node, 'v-show');
+	        directive = new _directive2.default(descriptor, $model, node);
+	        direct_array.push(directive);
+	    }
+	    if (model) {
+	        if (!$model.hasOwnProperty(model)) {
+	            $model[model] = '';
+	        }
+	        scope.model = model;
+	        var descriptor = {
+	            expression: 'v-model',
+	            raw: model
+	        };
+	        (0, _util.removeAttribute)(node, 'v-model');
+	        directive = new _directive2.default(descriptor, $model, node);
+	        direct_array.push(directive);
+	        node.addEventListener('input', onchange.bind(this, model), false);
+	    }
+	    if (vFor) {
+	        var t_array = vFor.split(/\s+/);
+	        var newNode = (0, _util.createAnchor)();
+	        scope.$end = newNode;
+	        scope.$arrayCache = [];
+	        scope.$domCache = [];
+
+	        (0, _util.replaceNode)(newNode, node);
+	        var descriptor = {
+	            expression: 'v-for',
+	            list: t_array[2],
+	            obj: t_array[0]
+	        };
+
+	        directive = new _directive2.default(descriptor, $model, node);
+	        (0, _util.removeAttribute)(node, 'v-for');
+	        direct_array.push(directive);
+	    }
+	    if (vIf) {
+	        scope.if = vIf;
+	        var descriptor = {
+	            expression: 'v-if',
+	            raw: vIf
+	        };
+	        directive = new _directive2.default(descriptor, $model, node);
+	        (0, _util.removeAttribute)(node, 'v-if');
+	        direct_array.push(directive);
+	    }
+
+	    if (vElse) {
+	        scope.else = true;
+	        var descriptor = {
+	            expression: 'v-else',
+	            raw: vElse
+	        };
+
+	        directive = new _directive2.default(descriptor, $model, node);
+	        (0, _util.removeAttribute)(node, 'v-else');
+	        direct_array.push(directive);
+	    }
+
+	    return scope;
+	};
+
+	exports.default = parse;
 
 /***/ },
 /* 4 */
@@ -315,16 +348,25 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	function Directive(descriptor, vm, el) {
+	function Directive(descriptor, vm, el, def) {
 	    this.descriptor = descriptor;
 	    this.vm = vm;
 	    this.el = el;
+	    this.bind(def);
 	    el._directive = el._directive || [];
 	    el._directive.push(this);
 	}
 
-	Directive.prototype.bind = function () {
+	Directive.prototype.bind = function (def) {
+	    //Object.assign(this,def);
+	    //if(this.bind){
+	    //    this.bind();
+	    //}
 	    console.log('bind');
+	};
+
+	Directive.prototype.mount = function () {
+	    console.log('mount');
 	};
 
 	Directive.prototype.unbind = function () {
@@ -434,7 +476,7 @@
 	    value: true
 	});
 
-	var _util = __webpack_require__(3);
+	var _util = __webpack_require__(2);
 
 	var textUpdate = function textUpdate(directive) {
 	    var node = this.$node;
@@ -459,6 +501,7 @@
 	};
 
 	var valueUpdate = function valueUpdate(directive) {
+
 	    var node = this.$node;
 	    var descriptor = directive.descriptor;
 	    var raw = descriptor.raw;
@@ -469,6 +512,7 @@
 	};
 
 	var listUpdate = function listUpdate(directive) {
+
 	    var descriptor = directive.descriptor;
 	    var vm = directive.vm;
 	    var list = vm[descriptor.list];
@@ -531,7 +575,7 @@
 	};
 
 	var ifUpdate = function ifUpdate(directive) {
-	    var descriptor = item.descriptor;
+	    var descriptor = directive.descriptor;
 	    var raw = descriptor.raw;
 	    var vm = directive.vm;
 	    var judge = vm[raw];
@@ -540,7 +584,6 @@
 	    var parentNode = this.$parentNode;
 	    var flag;
 	    if (judge) {
-	        (0, _util.removeAttribute)(node, 'v-if');
 	        parentNode.appendChild(node);
 	        flag = true;
 	    } else {
@@ -555,14 +598,11 @@
 	    var flag = !node.judge;
 	    var parentNode = this.$parentNode;
 	    if (flag) {
-	        (0, _util.removeAttribute)(node, 'v-else');
 	        parentNode.appendChild(node);
 	    } else {
 	        parentNode.removeChild(node);
 	    }
 	};
-
-	var update = function update() {};
 
 	var render = function render() {
 	    var cache = this.$cache;
@@ -571,6 +611,7 @@
 	        $direct_array.forEach(function (directive) {
 	            var descriptor = directive.descriptor;
 	            var expression = descriptor.expression;
+	            directive.mount();
 	            type_array[expression].call(item, directive);
 	        });
 	    });
@@ -584,6 +625,7 @@
 	    'v-if': ifUpdate,
 	    'v-else': elseUpdate
 	};
+
 	exports.default = render;
 
 /***/ }

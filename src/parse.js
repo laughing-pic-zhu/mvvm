@@ -3,7 +3,7 @@ import Directive from './directive';
 
 var parse = function () {
     this.$cache = this.$cache.map(function (node) {
-        return paserNode.call(this,node);
+        return paserNode.call(this, node);
     }, this);
 };
 
@@ -11,7 +11,7 @@ var storageDom = function (node) {
     this.$parentNode = node.parentNode;
     this.$nextNode = node.nextElementSibling;
     this.$node = node;
-    this.$direct_array=[];
+    this.$direct_array = [];
 };
 
 var onchange = function (attr) {
@@ -28,42 +28,41 @@ var paserNode = function (node) {
     var vIf = node.getAttribute('v-if');
     var vElse = node.hasAttribute('v-else');
     var textContent = node.textContent;
-    var $model=this.$model;
-    var direct_array=scope.$direct_array;
+    var $model = this.$model;
+    var direct_array = scope.$direct_array;
     if (textContent) {
         text = stringParse(textContent);
     }
-
     if (text) {
         scope.text = text;
-        var descriptor={
-            expression:'v-text',
-            raw:text
+        var descriptor = {
+            expression: 'v-text',
+            raw: text
         };
-        removeAttribute(node,'v-text');
-        direct_array.push(new Directive(descriptor,$model,node));
+        removeAttribute(node, 'v-text');
+        direct_array.push(new Directive(descriptor, $model, node));
     }
     if (show) {
         scope.show = show;
-        var descriptor={
-            expression:'v-show',
-            raw:show,
-            key:'display'
+        var descriptor = {
+            expression: 'v-show',
+            raw: show,
+            key: 'display'
         };
-        removeAttribute(node,'v-show');
-        direct_array.push(new Directive(descriptor,$model,node));
+        removeAttribute(node, 'v-show');
+        direct_array.push(new Directive(descriptor, $model, node));
     }
     if (model) {
         if (!$model.hasOwnProperty(model)) {
             $model[model] = '';
         }
         scope.model = model;
-        var descriptor={
-            expression:'v-model',
-            raw:model
+        var descriptor = {
+            expression: 'v-model',
+            raw: model
         };
-        removeAttribute(node,'v-model');
-        direct_array.push(new Directive(descriptor,$model,node));
+        removeAttribute(node, 'v-model');
+        direct_array.push(new Directive(descriptor, $model, node));
         node.addEventListener('input', onchange.bind(this, model), false);
     }
     if (vFor) {
@@ -74,33 +73,33 @@ var paserNode = function (node) {
         scope.$domCache = [];
 
         replaceNode(newNode, node);
-        var descriptor={
-            expression:'v-for',
-            list:t_array[2],
-            obj:t_array[0]
+        var descriptor = {
+            expression: 'v-for',
+            list: t_array[2],
+            obj: t_array[0]
         };
 
-        removeAttribute(node,'v-for');
-        direct_array.push(new Directive(descriptor,$model,node));
+        removeAttribute(node, 'v-for');
+        direct_array.push(new Directive(descriptor, $model, node));
     }
     if (vIf) {
         scope.if = vIf;
-        var descriptor={
-            expression:'v-if',
-            raw:vIf
+        var descriptor = {
+            expression: 'v-if',
+            raw: vIf
         };
-        removeAttribute(node,'v-if');
-        direct_array.push(new Directive(descriptor,$model,node));
+        removeAttribute(node, 'v-if');
+        direct_array.push(new Directive(descriptor, $model, node));
     }
 
     if (vElse) {
         scope.else = true;
-        var descriptor={
-            expression:'v-else',
-            raw:vElse
+        var descriptor = {
+            expression: 'v-else',
+            raw: vElse
         };
-        removeAttribute(node,'v-else');
-        direct_array.push(new Directive(descriptor,$model,node));
+        removeAttribute(node, 'v-else');
+        direct_array.push(new Directive(descriptor, $model, node));
     }
 
     return scope;

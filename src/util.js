@@ -1,3 +1,5 @@
+var textReg = '^{{(.+)}}$';
+
 var createAnchor = function () {
     return document.createTextNode(' ');
 };
@@ -43,8 +45,7 @@ var judgeNull = function (value) {
 };
 
 var stringParse = function (str) {
-    var reg = /^{{(.+)}}$/;
-    var array = reg.exec(str);
+    var array = new RegExp(textReg).exec(str);
     if (array) {
         return array.slice(1);
     }
@@ -61,4 +62,4 @@ var removeAttribute = function (node, attr) {
     }
 };
 
-export {createAnchor,contrastArray,singleDom,replaceNode,judgeNull,stringParse,createFragment,removeAttribute}
+export {createAnchor,contrastArray,singleDom,replaceNode,judgeNull,stringParse,createFragment,removeAttribute,textReg}

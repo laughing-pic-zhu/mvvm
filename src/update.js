@@ -44,7 +44,6 @@ var listUpdate = function (directive) {
     var arrayCache = this.$arrayCache;
     var domCache = this.$domCache;
 
-
     if (arrayCache.length == 0) {
         list.forEach(function (_item) {
             var fragment = createFragment();
@@ -132,6 +131,7 @@ var render = function () {
         $direct_array.forEach(directive=> {
             var descriptor = directive.descriptor;
             var expression = descriptor.expression;
+            directive.mount();
             type_array[expression].call(item, directive);
         });
     });
@@ -146,4 +146,5 @@ var type_array = {
     'v-if': ifUpdate,
     'v-else': elseUpdate
 };
+
 export default render
