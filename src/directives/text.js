@@ -1,8 +1,23 @@
-var vtext;
-vtext.bind = function () {
-    console.log('text directive bind');
+import {Parser,extend} from '../parser'
+import Directive from '../directive'
+
+var VText = function () {
+    Parser.apply(this, arguments);
 };
-vtext.update = function (textContent) {
+
+var vt = extend(VText);
+
+vt.parse = function (val) {
+    this.bind();
+};
+
+vt.update = function (textContent) {
+    if (typeof textContent == 'function') {
+        var model=this.model;
+        textContent = textContent.apply(model);
+    }
+
     this.node.textContent = textContent;
 };
-export default vtext
+
+export default VText

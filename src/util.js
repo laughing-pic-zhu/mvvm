@@ -23,7 +23,6 @@ var contrastArray = function (_old, _new) {
 };
 
 
-
 var singleDom = function (node, newNode, value, _item) {
     var textContent = node.getAttribute('v-text');
     if (textContent == value) {
@@ -47,7 +46,7 @@ var judgeNull = function (value) {
 var stringParse = function (str) {
     var array = new RegExp(textReg).exec(str);
     if (array) {
-        return array.slice(1);
+        return array[1];
     }
     return '';
 };
@@ -62,4 +61,30 @@ var removeAttribute = function (node, attr) {
     }
 };
 
-export {createAnchor,contrastArray,singleDom,replaceNode,judgeNull,stringParse,createFragment,removeAttribute,textReg}
+var toArray = function (list) {
+    var length = list.length;
+    var array = [];
+    while (length--) {
+        array.push(list[length])
+    }
+    return array
+};
+
+var storageDom = function (node) {
+    var newPosition = createAnchor();
+    replaceNode(newPosition, node);
+    return newPosition;
+};
+export {
+    createAnchor,
+    contrastArray,
+    singleDom,
+    replaceNode,
+    judgeNull,
+    stringParse,
+    createFragment,
+    removeAttribute,
+    textReg,
+    toArray,
+    storageDom
+}

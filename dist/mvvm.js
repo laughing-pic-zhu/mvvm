@@ -50,15 +50,15 @@
 
 	var _compile2 = _interopRequireDefault(_compile);
 
-	var _parse = __webpack_require__(3);
+	var _parser = __webpack_require__(5);
 
-	var _parse2 = _interopRequireDefault(_parse);
+	var _parser2 = _interopRequireDefault(_parser);
 
-	var _observe = __webpack_require__(5);
+	var _observe = __webpack_require__(7);
 
 	var _observe2 = _interopRequireDefault(_observe);
 
-	var _update = __webpack_require__(7);
+	var _update = __webpack_require__(14);
 
 	var _update2 = _interopRequireDefault(_update);
 
@@ -69,8 +69,8 @@
 	    this.$model = params.data || {};
 	    this.$cache = [];
 	    _compile2.default.call(this, this.$vm);
-	    _parse2.default.call(this);
-	    _observe2.default.call(this);
+	    //parse.call(this);
+	    _observe2.default.call(this, this.$model, _update2.default);
 	    _update2.default.call(this);
 	};
 
@@ -88,10 +88,21 @@
 
 	var _util = __webpack_require__(2);
 
+	var _directives = __webpack_require__(3);
+
+	var _directives2 = _interopRequireDefault(_directives);
+
+	var _directive = __webpack_require__(6);
+
+	var _directive2 = _interopRequireDefault(_directive);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 	var type_array = ['v-text', 'v-show', 'v-model', 'v-for', 'v-if', 'v-else'];
 
 	var compile = function compile(dom) {
 	    addQueue.call(this, dom);
+	    parseQueue.call(this);
 	};
 
 	var addQueue = function addQueue(nodes) {
@@ -105,6 +116,48 @@
 	            }, this);
 	        }
 	    }
+	};
+
+	var parseQueue = function parseQueue() {
+	    this.$cache = this.$cache.map(function (node) {
+	        return paserNode.call(this, node);
+	    }, this);
+	};
+
+	var paserNode = function paserNode(node) {
+	    var direct_array = [];
+	    var $model = this.$model;
+	    var scope = {
+	        $parentNode: node.parentNode,
+	        $nextNode: node.nextElementSibling,
+	        $node: node,
+	        $direct_array: direct_array,
+	        $model: $model
+	    };
+
+	    var attributes = (0, _util.toArray)(node.attributes);
+	    var textContent = node.textContent;
+	    attributes.forEach(function (attr) {
+	        var name = attr.name;
+	        var val = attr.value;
+	        if (isDirective(name)) {
+	            var directiveType = 'v' + /v-(\w+)/.exec(name)[1];
+	            var Parser = _directives2.default[directiveType];
+	            (0, _util.removeAttribute)(node, name);
+	            direct_array.push(new Parser(val, scope));
+	        }
+	    });
+
+	    var textValue = (0, _util.stringParse)(textContent);
+
+	    if (textValue) {
+	        var directiveType = 'vtext';
+	        var Parser = _directives2.default[directiveType];
+	        node.textContent = '';
+	        direct_array.push(new Parser(textValue, scope));
+	    }
+
+	    return scope;
 	};
 
 	var hasDirective = function hasDirective(node) {
@@ -121,6 +174,11 @@
 	        }
 	    }
 	    return flag;
+	};
+
+	var isDirective = function isDirective(attr) {
+	    return (/v-(\w.)/.test(attr)
+	    );
 	};
 
 	exports.default = compile;
@@ -181,7 +239,7 @@
 	var stringParse = function stringParse(str) {
 	    var array = new RegExp(textReg).exec(str);
 	    if (array) {
-	        return array.slice(1);
+	        return array[1];
 	    }
 	    return '';
 	};
@@ -196,6 +254,20 @@
 	    }
 	};
 
+	var toArray = function toArray(list) {
+	    var length = list.length;
+	    var array = [];
+	    while (length--) {
+	        array.push(list[length]);
+	    }
+	    return array;
+	};
+
+	var storageDom = function storageDom(node) {
+	    var newPosition = createAnchor();
+	    replaceNode(newPosition, node);
+	    return newPosition;
+	};
 	exports.createAnchor = createAnchor;
 	exports.contrastArray = contrastArray;
 	exports.singleDom = singleDom;
@@ -205,6 +277,8 @@
 	exports.createFragment = createFragment;
 	exports.removeAttribute = removeAttribute;
 	exports.textReg = textReg;
+	exports.toArray = toArray;
+	exports.storageDom = storageDom;
 
 /***/ },
 /* 3 */
@@ -213,167 +287,75 @@
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 
-	var _util = __webpack_require__(2);
+	var _else = __webpack_require__(4);
 
-	var _directive = __webpack_require__(4);
+	var _else2 = _interopRequireDefault(_else);
 
-	var _directive2 = _interopRequireDefault(_directive);
+	var _if = __webpack_require__(9);
+
+	var _if2 = _interopRequireDefault(_if);
+
+	var _for = __webpack_require__(10);
+
+	var _for2 = _interopRequireDefault(_for);
+
+	var _show = __webpack_require__(11);
+
+	var _show2 = _interopRequireDefault(_show);
+
+	var _text = __webpack_require__(12);
+
+	var _text2 = _interopRequireDefault(_text);
+
+	var _model = __webpack_require__(13);
+
+	var _model2 = _interopRequireDefault(_model);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var parse = function parse() {
-	    this.$cache = this.$cache.map(function (node) {
-	        return paserNode.call(this, node);
-	    }, this);
-	};
-
-	var storageDom = function storageDom(node) {
-	    this.$parentNode = node.parentNode;
-	    this.$nextNode = node.nextElementSibling;
-	    this.$node = node;
-	    this.$direct_array = [];
-	};
-
-	var onchange = function onchange(attr) {
-	    this.$model[attr] = event.target.value;
-	};
-
-	var paserNode = function paserNode(node) {
-	    var scope = {};
-	    storageDom.call(scope, node);
-	    var text = node.getAttribute('v-text');
-	    var show = node.getAttribute('v-show');
-	    var model = node.getAttribute('v-model');
-	    var vFor = node.getAttribute('v-for');
-	    var vIf = node.getAttribute('v-if');
-	    var vElse = node.hasAttribute('v-else');
-	    var textContent = node.textContent;
-	    var $model = this.$model;
-	    var direct_array = scope.$direct_array;
-	    var directive;
-	    if (textContent) {
-	        text = (0, _util.stringParse)(textContent);
-	    }
-
-	    if (text) {
-	        scope.text = text;
-	        var descriptor = {
-	            expression: 'v-text',
-	            raw: text
-	        };
-	        (0, _util.removeAttribute)(node, 'v-text');
-	        directive = new _directive2.default(descriptor, $model, node);
-	        direct_array.push(directive);
-	    }
-	    if (show) {
-	        scope.show = show;
-	        var descriptor = {
-	            expression: 'v-show',
-	            raw: show,
-	            key: 'display'
-	        };
-	        (0, _util.removeAttribute)(node, 'v-show');
-	        directive = new _directive2.default(descriptor, $model, node);
-	        direct_array.push(directive);
-	    }
-	    if (model) {
-	        if (!$model.hasOwnProperty(model)) {
-	            $model[model] = '';
-	        }
-	        scope.model = model;
-	        var descriptor = {
-	            expression: 'v-model',
-	            raw: model
-	        };
-	        (0, _util.removeAttribute)(node, 'v-model');
-	        directive = new _directive2.default(descriptor, $model, node);
-	        direct_array.push(directive);
-	        node.addEventListener('input', onchange.bind(this, model), false);
-	    }
-	    if (vFor) {
-	        var t_array = vFor.split(/\s+/);
-	        var newNode = (0, _util.createAnchor)();
-	        scope.$end = newNode;
-	        scope.$arrayCache = [];
-	        scope.$domCache = [];
-
-	        (0, _util.replaceNode)(newNode, node);
-	        var descriptor = {
-	            expression: 'v-for',
-	            list: t_array[2],
-	            obj: t_array[0]
-	        };
-
-	        directive = new _directive2.default(descriptor, $model, node);
-	        (0, _util.removeAttribute)(node, 'v-for');
-	        direct_array.push(directive);
-	    }
-	    if (vIf) {
-	        scope.if = vIf;
-	        var descriptor = {
-	            expression: 'v-if',
-	            raw: vIf
-	        };
-	        directive = new _directive2.default(descriptor, $model, node);
-	        (0, _util.removeAttribute)(node, 'v-if');
-	        direct_array.push(directive);
-	    }
-
-	    if (vElse) {
-	        scope.else = true;
-	        var descriptor = {
-	            expression: 'v-else',
-	            raw: vElse
-	        };
-
-	        directive = new _directive2.default(descriptor, $model, node);
-	        (0, _util.removeAttribute)(node, 'v-else');
-	        direct_array.push(directive);
-	    }
-
-	    return scope;
-	};
-
-	exports.default = parse;
+	exports.default = { velse: _else2.default, vif: _if2.default, vfor: _for2.default, vshow: _show2.default, vtext: _text2.default, vmodel: _model2.default };
 
 /***/ },
 /* 4 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	function Directive(descriptor, vm, el, def) {
-	    this.descriptor = descriptor;
-	    this.vm = vm;
-	    this.el = el;
-	    this.bind(def);
-	    el._directive = el._directive || [];
-	    el._directive.push(this);
-	}
 
-	Directive.prototype.bind = function (def) {
-	    //Object.assign(this,def);
-	    //if(this.bind){
-	    //    this.bind();
-	    //}
-	    console.log('bind');
+	var _parser = __webpack_require__(5);
+
+	var VElse = function VElse() {
+	    _parser.Parser.apply(this, arguments);
 	};
 
-	Directive.prototype.mount = function () {
-	    console.log('mount');
+	var velse = (0, _parser.extend)(VElse);
+
+	velse.parse = function () {
+	    console.log('velse parser parse');
+	    var node = this.node;
+	    this.newPosition = storageDom(node);
+	    this.bind();
 	};
 
-	Directive.prototype.unbind = function () {
-	    console.log('unbind');
+	velse.update = function () {
+	    var node = this.node;
+	    var flag = !node.judge;
+	    var newPosition = this.newPosition;
+
+	    if (flag) {
+	        replaceNode(node, newPosition);
+	    } else {
+	        replaceNode(newPosition, node);
+	    }
 	};
 
-	exports.default = Directive;
+	exports.default = VElse;
 
 /***/ },
 /* 5 */
@@ -384,26 +366,217 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
+	exports.extend = exports.Parser = undefined;
 
-	var _watch = __webpack_require__(6);
+	var _util = __webpack_require__(2);
 
-	var _watch2 = _interopRequireDefault(_watch);
+	var _directive = __webpack_require__(6);
 
-	var _update = __webpack_require__(7);
+	var _directive2 = _interopRequireDefault(_directive);
 
-	var _update2 = _interopRequireDefault(_update);
+	var _observe = __webpack_require__(7);
+
+	var _observe2 = _interopRequireDefault(_observe);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var observe = function observe() {
-	    var model = this.$model;
-	    _watch2.default.call(this, model, _update2.default.bind(this));
+	//var parse = function () {
+	//    this.$cache = this.$cache.map(function (node) {
+	//        return paserNode.call(this, node);
+	//    }, this);
+	//};
+	//
+	//var storageDom = function (node) {
+	//    this.$parentNode = node.parentNode;
+	//    this.$nextNode = node.nextElementSibling;
+	//    this.$node = node;
+	//    this.$direct_array = [];
+	//};
+	//
+	//var onchange = function (attr) {
+	//    this.$model[attr] = event.target.value;
+	//};
+	//
+	//var paserNode = function (node) {
+	//    var scope = {};
+	//    storageDom.call(scope, node);
+	//    var text = node.getAttribute('v-text');
+	//    var show = node.getAttribute('v-show');
+	//    var model = node.getAttribute('v-model');
+	//    var vFor = node.getAttribute('v-for');
+	//    var vIf = node.getAttribute('v-if');
+	//    var vElse = node.hasAttribute('v-else');
+	//    var textContent = node.textContent;
+	//    var $model = this.$model;
+	//    var direct_array = scope.$direct_array;
+	//    if (textContent) {
+	//        text = stringParse(textContent);
+	//    }
+	//    if (text) {
+	//        scope.text = text;
+	//        var descriptor = {
+	//            expression: 'v-text',
+	//            raw: text
+	//        };
+	//        removeAttribute(node, 'v-text');
+	//        direct_array.push(new Directive(descriptor, $model, node));
+	//    }
+	//    if (show) {
+	//        scope.show = show;
+	//        var descriptor = {
+	//            expression: 'v-show',
+	//            raw: show,
+	//            key: 'display'
+	//        };
+	//        removeAttribute(node, 'v-show');
+	//        direct_array.push(new Directive(descriptor, $model, node));
+	//    }
+	//    if (model) {
+	//        if (!$model.hasOwnProperty(model)) {
+	//            $model[model] = '';
+	//        }
+	//        scope.model = model;
+	//        var descriptor = {
+	//            expression: 'v-model',
+	//            raw: model
+	//        };
+	//        removeAttribute(node, 'v-model');
+	//        direct_array.push(new Directive(descriptor, $model, node));
+	//        node.addEventListener('input', onchange.bind(this, model), false);
+	//    }
+	//    if (vFor) {
+	//        var t_array = vFor.split(/\s+/);
+	//        var newNode = createAnchor();
+	//        scope.$end = newNode;
+	//        scope.$arrayCache = [];
+	//        scope.$domCache = [];
+	//
+	//        replaceNode(newNode, node);
+	//        var descriptor = {
+	//            expression: 'v-for',
+	//            list: t_array[2],
+	//            obj: t_array[0]
+	//        };
+	//
+	//        removeAttribute(node, 'v-for');
+	//        direct_array.push(new Directive(descriptor, $model, node));
+	//    }
+	//    if (vIf) {
+	//        scope.if = vIf;
+	//        var descriptor = {
+	//            expression: 'v-if',
+	//            raw: vIf
+	//        };
+	//        removeAttribute(node, 'v-if');
+	//        direct_array.push(new Directive(descriptor, $model, node));
+	//    }
+	//
+	//    if (vElse) {
+	//        scope.else = true;
+	//        var descriptor = {
+	//            expression: 'v-else',
+	//            raw: vElse
+	//        };
+	//        removeAttribute(node, 'v-else');
+	//        direct_array.push(new Directive(descriptor, $model, node));
+	//    }
+	//
+	//    return scope;
+	//};
+
+
+	var Parser = function Parser(raw, scope) {
+	    this.model = scope.$model;
+	    this.raw = raw;
+	    this.node = scope.$node;
+	    this.parentNode = scope.$parentNode;
+	    this.nextNode = scope.$nextNode;
+
+	    this.parse();
+	};
+
+	Parser.prototype.bind = function () {
+	    this.directive = new _directive2.default(this);
+	    this.directive.mount();
+	};
+
+	var extend = function extend(typeParser) {
+	    return typeParser.prototype = Object.create(Parser.prototype);
+	};
+
+	exports.Parser = Parser;
+	exports.extend = extend;
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	function Directive(parser) {
+	    this.parser = parser;
+
+	    //this.vm = vm;
+	    //this.el = el;
+	    //el._directive = el._directive || [];
+	    //el._directive.push(this);
+	}
+
+	Directive.prototype = {
+	    constructor: Directive,
+
+	    bind: function bind() {
+	        console.log('bind');
+	    },
+
+	    mount: function mount() {
+	        this.bind();
+
+	        console.log('mount');
+	    },
+
+	    update: function update() {
+	        console.log('update');
+	        var parser = this.parser;
+	        var model = parser.model;
+	        var raw = parser.raw;
+	        parser.update(model[raw]);
+	    },
+
+	    unbind: function unbind() {
+	        console.log('unbind');
+	    }
+	};
+
+	exports.default = Directive;
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _watch = __webpack_require__(8);
+
+	var _watch2 = _interopRequireDefault(_watch);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var observe = function observe(model, update) {
+	    _watch2.default.call(this, model, update);
 	};
 
 	exports.default = observe;
 
 /***/ },
-/* 6 */
+/* 8 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -467,7 +640,232 @@
 	exports.default = Watch;
 
 /***/ },
-/* 7 */
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _parser = __webpack_require__(5);
+
+	var _util = __webpack_require__(2);
+
+	var VIf = function VIf() {
+	    _parser.Parser.apply(this, arguments);
+	};
+
+	var vif = (0, _parser.extend)(VIf);
+
+	vif.parse = function () {
+	    console.log('vif directive bind');
+	    var node = this.node;
+	    this.newPosition = (0, _util.storageDom)(node);
+	    this.bind();
+	};
+
+	vif.update = function (judge) {
+	    var node = this.node;
+	    var nextNode = this.nextNode;
+	    var newPosition = this.newPosition;
+	    var flag;
+	    if (judge) {
+	        (0, _util.replaceNode)(node, newPosition);
+	        flag = true;
+	    } else {
+	        (0, _util.replaceNode)(newPosition, node);
+	        flag = false;
+	    }
+	    nextNode.judge = flag;
+	};
+
+	exports.default = VIf;
+
+/***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _parser = __webpack_require__(5);
+
+	var VFor = function VFor() {
+	    _parser.Parser.apply(this, arguments);
+	};
+
+	var vfor = (0, _parser.extend)(VFor);
+
+	vfor.bind = function () {
+	    console.log('vfor parser parse');
+	};
+
+	vfor.update = function (items, item) {
+
+	    var parentNode = this.parentNode;
+	    var node = this.node;
+	    var end = this.end;
+	    var arrayCache = this.$arrayCache;
+	    var domCache = this.$domCache;
+
+	    if (arrayCache.length == 0) {
+	        items.forEach(function (_item) {
+	            var fragment = createFragment();
+	            var newNode = node.cloneNode(true);
+	            singleDom(node, newNode, item, _item);
+	            fragment.appendChild(newNode);
+	            parentNode.insertBefore(fragment, end);
+	            arrayCache.push(_item);
+	            domCache.push(newNode);
+	        });
+	    } else {
+	        var diff = contrastArray(arrayCache, items);
+	        correctDom.call(this, items, item, diff);
+	    }
+	};
+
+	var correctDom = function correctDom(items, item, diff) {
+	    var diffArray = diff.slice();
+	    var domCache = this.$domCache;
+	    var arrayCache = this.$arrayCache;
+	    var node = this.$node;
+	    var end = this.$end;
+	    var parentNode = this.$parentNode;
+
+	    diffArray.forEach(function (_item) {
+	        var fragment = createFragment();
+	        var newNode = node.cloneNode(true);
+	        var val = items[item];
+	        if (val) {
+	            singleDom(node, newNode, obj, val);
+	        } else {
+	            parentNode.removeChild(domCache[_item]);
+	            delete domCache[_item];
+	            delete arrayCache[_item];
+	            return;
+	        }
+	        fragment.appendChild(newNode);
+	        if (domCache[_item]) {
+	            replaceNode(fragment, domCache[_item]);
+	        } else {
+	            parentNode.insertBefore(fragment, end);
+	        }
+	        domCache[_item] = newNode;
+	        arrayCache[_item] = items[_item];
+	    });
+	};
+
+	exports.default = VFor;
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _parser = __webpack_require__(5);
+
+	var VShow = function VShow() {
+	    _parser.Parser.apply(this, arguments);
+	};
+
+	var vshow = (0, _parser.extend)(VShow);
+
+	vshow.parse = function () {
+	    this.bind();
+	};
+
+	vshow.update = function (isShow) {
+	    var val = isShow ? 'block' : 'none';
+	    this.node.style.display = val;
+	};
+
+	exports.default = VShow;
+
+/***/ },
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _parser = __webpack_require__(5);
+
+	var _directive = __webpack_require__(6);
+
+	var _directive2 = _interopRequireDefault(_directive);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var VText = function VText() {
+	    _parser.Parser.apply(this, arguments);
+	};
+
+	var vt = (0, _parser.extend)(VText);
+
+	vt.parse = function (val) {
+	    this.bind();
+	};
+
+	vt.update = function (textContent) {
+	    if (typeof textContent == 'function') {
+	        var model = this.model;
+	        textContent = textContent.apply(model);
+	    }
+
+	    this.node.textContent = textContent;
+	};
+
+	exports.default = VText;
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _parser = __webpack_require__(5);
+
+	var VModel = function VModel() {
+	    _parser.Parser.apply(this, arguments);
+	};
+
+	var vmodel = (0, _parser.extend)(VModel);
+
+	vmodel.parse = function () {
+	    this.node.addEventListener('input', onchange.bind(this), false);
+	    this.bind();
+	};
+
+	vmodel.update = function (content) {
+	    this.node.value = content || '';
+	};
+
+	var onchange = function onchange() {
+	    var raw = this.raw;
+	    this.model[raw] = event.target.value;
+	};
+
+	exports.default = VModel;
+
+/***/ },
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -501,7 +899,6 @@
 	};
 
 	var valueUpdate = function valueUpdate(directive) {
-
 	    var node = this.$node;
 	    var descriptor = directive.descriptor;
 	    var raw = descriptor.raw;
@@ -512,7 +909,6 @@
 	};
 
 	var listUpdate = function listUpdate(directive) {
-
 	    var descriptor = directive.descriptor;
 	    var vm = directive.vm;
 	    var list = vm[descriptor.list];
@@ -609,10 +1005,8 @@
 	    cache.forEach(function (item) {
 	        var $direct_array = item.$direct_array;
 	        $direct_array.forEach(function (directive) {
-	            var descriptor = directive.descriptor;
-	            var expression = descriptor.expression;
-	            directive.mount();
-	            type_array[expression].call(item, directive);
+	            directive.directive.update();
+	            //type_array[expression].call(item, directive);
 	        });
 	    });
 	};

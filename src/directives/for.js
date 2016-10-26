@@ -1,13 +1,20 @@
-var vfor;
+import {Parser,extend} from '../parser'
+
+var VFor = function () {
+    Parser.apply(this,arguments);
+};
+
+var vfor = extend(VFor);
+
 vfor.bind = function () {
-    console.log('vfor directive bind');
+    console.log('vfor parser parse');
 };
 
 vfor.update = function (items,item) {
 
-    var parentNode = this.$parentNode;
-    var node = this.$node;
-    var end = this.$end;
+    var parentNode = this.parentNode;
+    var node = this.node;
+    var end = this.end;
     var arrayCache = this.$arrayCache;
     var domCache = this.$domCache;
 
@@ -58,4 +65,4 @@ var correctDom = function (items,item,diff) {
     });
 };
 
-export default vfor
+export default VFor

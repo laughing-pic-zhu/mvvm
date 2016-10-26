@@ -1,10 +1,19 @@
-var vshow;
-vshow.bind = function () {
-    console.log('vshow directive bind');
-};
-vshow.update = function (isShow) {
-    var status = isShow ? 'block' : 'none';
-    this.node.style.display = status;
+import {Parser,extend} from '../parser'
+
+var VShow = function () {
+    Parser.apply(this,arguments);
 };
 
-export default vshow
+var vshow = extend(VShow);
+
+vshow.parse = function () {
+    this.bind();
+};
+
+
+vshow.update = function (isShow) {
+    var val = isShow ? 'block' : 'none';
+    this.node.style.display = val;
+};
+
+export default VShow

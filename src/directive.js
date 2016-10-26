@@ -1,26 +1,36 @@
-function Directive(descriptor, vm, el,def) {
-    this.descriptor=descriptor;
-    this.vm=vm;
-    this.el=el;
-    this.bind(def);
-    el._directive=el._directive||[];
-    el._directive.push(this);
+function Directive(parser) {
+    this.parser = parser;
+
+    //this.vm = vm;
+    //this.el = el;
+    //el._directive = el._directive || [];
+    //el._directive.push(this);
 }
 
-Directive.prototype.bind=function(def){
-    //Object.assign(this,def);
-    //if(this.bind){
-    //    this.bind();
-    //}
-    console.log('bind');
-};
+Directive.prototype = {
+    constructor: Directive,
 
-Directive.prototype.mount=function(){
-    console.log('mount');
-};
+    bind: function () {
+        console.log('bind');
+    },
 
-Directive.prototype.unbind=function(){
-    console.log('unbind');
+    mount: function () {
+        this.bind();
+
+        console.log('mount');
+    },
+
+    update: function () {
+        console.log('update');
+        var parser = this.parser;
+        var model = parser.model;
+        var raw = parser.raw;
+        parser.update(model[raw]);
+    },
+
+    unbind: function () {
+        console.log('unbind');
+    }
 };
 
 export default Directive

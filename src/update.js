@@ -129,10 +129,8 @@ var render = function () {
     cache.forEach(function (item) {
         var $direct_array = item.$direct_array;
         $direct_array.forEach(directive=> {
-            var descriptor = directive.descriptor;
-            var expression = descriptor.expression;
-            directive.mount();
-            type_array[expression].call(item, directive);
+            directive.directive.update();
+            //type_array[expression].call(item, directive);
         });
     });
 };

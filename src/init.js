@@ -1,5 +1,5 @@
 import compile from './compile';
-import parse from './parse';
+import parse from './parser';
 import observe from './observe';
 import render from './update';
 
@@ -8,8 +8,8 @@ var MVVM = function (params) {
     this.$model = params.data || {};
     this.$cache = [];
     compile.call(this,this.$vm);
-    parse.call(this);
-    observe.call(this);
+    //parse.call(this);
+    observe.call(this,this.$model,render);
     render.call(this);
 };
 
