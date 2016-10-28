@@ -221,12 +221,14 @@
 	                a.push(i);
 	            }
 	        }
-	    } else {
+	        a.type = 'delete';
+	    } else if (_old.length < _new.length) {
 	        for (var i = 0; i < _new.length; i++) {
 	            if (_new[i] !== _old[i]) {
 	                a.push(i);
 	            }
 	        }
+	        a.type = 'add';
 	    }
 	    return a;
 	};
@@ -638,7 +640,7 @@
 	            Object.defineProperty(newProto, prop, {
 	                value: function value(newVal) {
 	                    arrayProto[prop].apply(a_array, arguments);
-	                    t.callback(path, newVal);
+	                    t.callback(a_array);
 	                },
 	                enumerable: false,
 	                configurable: true,
@@ -650,6 +652,16 @@
 
 	    this.$observe(obj, []);
 	};
+
+	//var _array=[1,2];
+	//
+	//function callback(){
+	//    console.log(1)
+	//}
+	//
+	//Watch(_array,callback);
+
+	//_array.push(1);
 	exports.default = Watch;
 
 /***/ },
@@ -741,11 +753,14 @@
 	    var arrayCache = this.arrayCache;
 	    var parentNode = this.parentNode;
 	    var newPosition = this.newPosition;
+	    var domCache = this.domCache;
 	    if (arrayCache.length == 0) {
 	        newItems.forEach(function (item) {
 	            var fragment = _this.createFragment(item);
+	            var cache = fragment.children[0];
 	            parentNode.insertBefore(fragment, newPosition);
 	            arrayCache.push(item);
+	            domCache.push(cache);
 	        });
 	    } else {
 	        var diff = (0, _util.contrastArray)(arrayCache, newItems);
@@ -759,7 +774,6 @@
 	    var fragment = (0, _util.createFragment)();
 	    var newNode = node.cloneNode(true);
 	    var direct_array = [];
-	    var domCache = this.domCache;
 
 	    var scope = {
 	        node: newNode,
@@ -776,7 +790,7 @@
 	        direct_array.push(parser);
 	        parser.directive.update();
 	    });
-	    domCache.push(newNode);
+
 	    fragment.appendChild(newNode);
 	    return fragment;
 	};
@@ -784,28 +798,31 @@
 	vfor.correctDom = function (newItems, oldItem, diff) {
 	    var _this2 = this;
 
+	    var type = diff.type;
 	    var diffArray = diff.slice();
 	    var domCache = this.domCache;
 	    var arrayCache = this.arrayCache;
 	    var newPosition = this.newPosition;
 	    var parentNode = this.parentNode;
 
-	    diffArray.forEach(function (_item) {
+	    diffArray.forEach(function (index) {
 	        var fragment;
-	        var newVal = newItems[_item];
-	        var oldDomCache = domCache[_item];
-	        if (newVal) {
-	            fragment = _this2.createFragment(newVal);
-	            if (oldDomCache) {
-	                (0, _util.replaceNode)(fragment, domCache[_item]);
-	            } else {
-	                parentNode.insertBefore(fragment, newPosition);
-	            }
-	            arrayCache[_item] = newItems[_item];
+	        var newVal = newItems[index];
+	        var oldDomCache = domCache[index];
+	        fragment = _this2.createFragment(newVal);
+	        if (type == 'add') {
+	            domCache.push(fragment.children[0]);
+	            arrayCache[index] = newItems[index];
+
+	            parentNode.insertBefore(fragment, newPosition);
+	        } else if (type == 'delete') {
+	            parentNode.removeChild(domCache[index]);
+	            delete domCache.splice(index, 1);
+	            delete arrayCache.splice(index, 1);
 	        } else {
-	            parentNode.removeChild(domCache[_item]);
-	            delete domCache.splice(_item, 1);
-	            delete arrayCache.splice(_item, 1);
+	            domCache[index] = fragment.children[0];
+	            arrayCache[index] = newVal;
+	            (0, _util.replaceNode)(fragment, oldDomCache);
 	        }
 	    });
 	};
@@ -916,140 +933,13 @@
 
 /***/ },
 /* 14 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
-	'use strict';
+	"use strict";
 
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-
-	var _util = __webpack_require__(2);
-
-	var textUpdate = function textUpdate(directive) {
-	    var node = this.$node;
-	    var descriptor = directive.descriptor;
-	    var raw = descriptor.raw;
-	    var vm = directive.vm;
-	    var content = vm[raw];
-	    if (typeof content == 'function') {
-	        content = content.apply(vm);
-	    }
-	    node.textContent = content || '';
-	};
-
-	var styleUpdate = function styleUpdate(directive) {
-	    var node = this.$node;
-	    var descriptor = directive.descriptor;
-	    var key = descriptor.key;
-	    var raw = descriptor.raw;
-	    var vm = directive.vm;
-	    var value = vm[raw] ? 'block' : 'none';
-	    node.style[key] = value;
-	};
-
-	var valueUpdate = function valueUpdate(directive) {
-	    var node = this.$node;
-	    var descriptor = directive.descriptor;
-	    var raw = descriptor.raw;
-	    var vm = directive.vm;
-	    var content = vm[raw];
-
-	    node.value = content || '';
-	};
-
-	var listUpdate = function listUpdate(directive) {
-	    var descriptor = directive.descriptor;
-	    var vm = directive.vm;
-	    var list = vm[descriptor.list];
-	    var obj = descriptor.obj;
-
-	    var parentNode = this.$parentNode;
-	    var node = this.$node;
-	    var end = this.$end;
-	    var arrayCache = this.$arrayCache;
-	    var domCache = this.$domCache;
-
-	    if (arrayCache.length == 0) {
-	        list.forEach(function (_item) {
-	            var fragment = (0, _util.createFragment)();
-	            var newNode = node.cloneNode(true);
-	            (0, _util.singleDom)(node, newNode, obj, _item);
-	            fragment.appendChild(newNode);
-	            parentNode.insertBefore(fragment, end);
-	            arrayCache.push(_item);
-	            domCache.push(newNode);
-	        });
-	    } else {
-	        var diff = (0, _util.contrastArray)(arrayCache, list);
-	        correctDom.call(this, directive, diff);
-	    }
-	};
-
-	var correctDom = function correctDom(directive, diff) {
-	    var diffArray = diff.slice();
-	    var domCache = this.$domCache;
-	    var arrayCache = this.$arrayCache;
-	    var node = this.$node;
-	    var end = this.$end;
-	    var parentNode = this.$parentNode;
-
-	    var descriptor = directive.descriptor;
-	    var obj = descriptor.obj;
-	    var vm = directive.vm;
-	    var list = vm[descriptor.list];
-	    diffArray.forEach(function (_item) {
-	        var fragment = (0, _util.createFragment)();
-	        var newNode = node.cloneNode(true);
-	        if (list[_item]) {
-	            (0, _util.singleDom)(node, newNode, obj, list[_item]);
-	        } else {
-	            parentNode.removeChild(domCache[_item]);
-	            delete domCache[_item];
-	            delete arrayCache[_item];
-	            return;
-	        }
-	        fragment.appendChild(newNode);
-	        if (domCache[_item]) {
-	            replaceNode(fragment, domCache[_item]);
-	        } else {
-	            parentNode.insertBefore(fragment, end);
-	        }
-	        domCache[_item] = newNode;
-	        arrayCache[_item] = list[_item];
-	    });
-	};
-
-	var ifUpdate = function ifUpdate(directive) {
-	    var descriptor = directive.descriptor;
-	    var raw = descriptor.raw;
-	    var vm = directive.vm;
-	    var judge = vm[raw];
-	    var node = this.$node;
-	    var nextNode = this.$nextNode;
-	    var parentNode = this.$parentNode;
-	    var flag;
-	    if (judge) {
-	        parentNode.appendChild(node);
-	        flag = true;
-	    } else {
-	        parentNode.removeChild(node);
-	        flag = false;
-	    }
-	    nextNode.judge = flag;
-	};
-
-	var elseUpdate = function elseUpdate() {
-	    var node = this.$node;
-	    var flag = !node.judge;
-	    var parentNode = this.$parentNode;
-	    if (flag) {
-	        parentNode.appendChild(node);
-	    } else {
-	        parentNode.removeChild(node);
-	    }
-	};
-
 	var render = function render() {
 	    var cache = this.$cache;
 	    cache.forEach(function (item) {
@@ -1058,18 +948,8 @@
 	        var direct_array = item.direct_array;
 	        direct_array.forEach(function (directive) {
 	            directive.directive.update.apply(directive.directive, _arguments);
-	            //type_array[expression].call(item, directive);
 	        });
 	    });
-	};
-
-	var type_array = {
-	    'v-text': textUpdate,
-	    'v-show': styleUpdate,
-	    'v-model': valueUpdate,
-	    'v-for': listUpdate,
-	    'v-if': ifUpdate,
-	    'v-else': elseUpdate
 	};
 
 	exports.default = render;

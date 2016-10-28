@@ -12,12 +12,14 @@ var contrastArray = function (_old, _new) {
                 a.push(i);
             }
         }
-    } else {
+        a.type='delete';
+    } else if(_old.length < _new.length){
         for (var i = 0; i < _new.length; i++) {
             if (_new[i] !== _old[i]) {
                 a.push(i);
             }
         }
+        a.type='add';
     }
     return a;
 };

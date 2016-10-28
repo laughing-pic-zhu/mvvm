@@ -25,12 +25,14 @@ vfor.update = function (newItems, oldItem) {
     var arrayCache = this.arrayCache;
     var parentNode = this.parentNode;
     var newPosition = this.newPosition;
+    var domCache = this.domCache;
     if (arrayCache.length == 0) {
         newItems.forEach(item=> {
-            var fragment=this.createFragment(item);
+            var fragment = this.createFragment(item);
+            var cache=fragment.children[0];
             parentNode.insertBefore(fragment, newPosition);
             arrayCache.push(item);
-
+            domCache.push(cache);
         });
     } else {
         var diff = contrastArray(arrayCache, newItems);
@@ -44,7 +46,6 @@ vfor.createFragment = function (item) {
     var fragment = createFragment();
     var newNode = node.cloneNode(true);
     var direct_array = [];
-    var domCache = this.domCache;
 
     var scope = {
         node: newNode,
@@ -61,34 +62,37 @@ vfor.createFragment = function (item) {
         direct_array.push(parser);
         parser.directive.update();
     });
-    domCache.push(newNode);
+
     fragment.appendChild(newNode);
     return fragment;
 };
 
 vfor.correctDom = function (newItems, oldItem, diff) {
+    var type = diff.type;
     var diffArray = diff.slice();
     var domCache = this.domCache;
     var arrayCache = this.arrayCache;
     var newPosition = this.newPosition;
     var parentNode = this.parentNode;
 
-    diffArray.forEach(_item=> {
+    diffArray.forEach(index=> {
         var fragment;
-        var newVal = newItems[_item];
-        var oldDomCache=domCache[_item];
-        if (newVal) {
-            fragment=this.createFragment(newVal);
-            if (oldDomCache) {
-                replaceNode(fragment, domCache[_item]);
-            } else {
-                parentNode.insertBefore(fragment, newPosition);
-            }
-            arrayCache[_item] = newItems[_item];
-        } else {
-            parentNode.removeChild(domCache[_item]);
-            delete domCache.splice(_item,1);
-            delete arrayCache.splice(_item,1);
+        var newVal = newItems[index];
+        var oldDomCache = domCache[index];
+        fragment = this.createFragment(newVal);
+        if (type == 'add') {
+            domCache.push(fragment.children[0]);
+            arrayCache[index] = newItems[index];
+
+            parentNode.insertBefore(fragment, newPosition);
+        } else if(type == 'delete'){
+            parentNode.removeChild(domCache[index]);
+            delete domCache.splice(index, 1);
+            delete arrayCache.splice(index, 1);
+        }else{
+            domCache[index]=fragment.children[0];
+            arrayCache[index]=newVal;
+            replaceNode(fragment,oldDomCache);
         }
     });
 };

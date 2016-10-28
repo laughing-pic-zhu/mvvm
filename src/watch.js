@@ -39,8 +39,8 @@ var Watch = function (obj, callback) {
             Object.defineProperty(newProto, prop, {
                 value: function (newVal) {
                     arrayProto[prop].apply(a_array, arguments);
-                    t.callback(path, newVal);
-                },
+                    t.callback(a_array);
+                 },
                 enumerable: false,
                 configurable: true,
                 writable: true
@@ -51,4 +51,14 @@ var Watch = function (obj, callback) {
 
     this.$observe(obj, []);
 }
+
+//var _array=[1,2];
+//
+//function callback(){
+//    console.log(1)
+//}
+//
+//Watch(_array,callback);
+
+//_array.push(1);
 export default Watch;
