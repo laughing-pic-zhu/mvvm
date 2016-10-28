@@ -33,7 +33,9 @@ var singleDom = function (node, newNode, value, _item) {
 };
 
 var replaceNode = function (node, old) {
+    if(old.parentNode){
     old.parentNode.replaceChild(node, old);
+    }
 };
 
 var judgeNull = function (value) {

@@ -127,8 +127,8 @@ var elseUpdate = function () {
 var render = function () {
     var cache = this.$cache;
     cache.forEach(function (item) {
-        var $direct_array = item.$direct_array;
-        $direct_array.forEach(directive=> {
+        var direct_array = item.direct_array;
+        direct_array.forEach(directive=> {
             directive.directive.update();
             //type_array[expression].call(item, directive);
         });

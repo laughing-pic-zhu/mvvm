@@ -1,4 +1,5 @@
 import {Parser,extend} from '../parser'
+import {storageDom,replaceNode} from '../util'
 
 var VElse = function () {
     Parser.apply(this,arguments);

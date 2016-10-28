@@ -1,6 +1,5 @@
 function Directive(parser) {
     this.parser = parser;
-
     //this.vm = vm;
     //this.el = el;
     //el._directive = el._directive || [];
@@ -16,7 +15,6 @@ Directive.prototype = {
 
     mount: function () {
         this.bind();
-
         console.log('mount');
     },
 
@@ -24,8 +22,16 @@ Directive.prototype = {
         console.log('update');
         var parser = this.parser;
         var model = parser.model;
+
         var raw = parser.raw;
-        parser.update(model[raw]);
+
+        var val;
+        if(typeof model=='string'){
+            val=model
+        }else{
+            val=model[raw]
+        }
+        parser.update(val);
     },
 
     unbind: function () {

@@ -92,10 +92,6 @@
 
 	var _directives2 = _interopRequireDefault(_directives);
 
-	var _directive = __webpack_require__(6);
-
-	var _directive2 = _interopRequireDefault(_directive);
-
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var type_array = ['v-text', 'v-show', 'v-model', 'v-for', 'v-if', 'v-else'];
@@ -128,34 +124,53 @@
 	    var direct_array = [];
 	    var $model = this.$model;
 	    var scope = {
-	        $parentNode: node.parentNode,
-	        $nextNode: node.nextElementSibling,
-	        $node: node,
-	        $direct_array: direct_array,
-	        $model: $model
+	        parentNode: node.parentNode,
+	        nextNode: node.nextElementSibling,
+	        node: node,
+	        direct_array: direct_array,
+	        model: $model
 	    };
 
 	    var attributes = (0, _util.toArray)(node.attributes);
 	    var textContent = node.textContent;
+	    var attrs = [];
+	    var vfor;
+
 	    attributes.forEach(function (attr) {
 	        var name = attr.name;
-	        var val = attr.value;
 	        if (isDirective(name)) {
-	            var directiveType = 'v' + /v-(\w+)/.exec(name)[1];
-	            var Parser = _directives2.default[directiveType];
+	            if (name == 'v-for') {
+	                vfor = attr;
+	            } else {
+	                attrs.push(attr);
+	            }
+
 	            (0, _util.removeAttribute)(node, name);
-	            direct_array.push(new Parser(val, scope));
 	        }
 	    });
 
+	    //bug  nodeType=3
 	    var textValue = (0, _util.stringParse)(textContent);
-
 	    if (textValue) {
-	        var directiveType = 'vtext';
-	        var Parser = _directives2.default[directiveType];
+	        attrs.push({
+	            name: 'v-text',
+	            value: textValue
+	        });
 	        node.textContent = '';
-	        direct_array.push(new Parser(textValue, scope));
 	    }
+
+	    if (vfor) {
+	        scope.attrs = attrs;
+	        attrs = [vfor];
+	    }
+
+	    attrs.forEach(function (attr) {
+	        var name = attr.name;
+	        var val = attr.value;
+	        var directiveType = 'v' + /v-(\w+)/.exec(name)[1];
+	        var Parser = _directives2.default[directiveType];
+	        direct_array.push(new Parser(val, scope));
+	    });
 
 	    return scope;
 	};
@@ -226,7 +241,9 @@
 	};
 
 	var replaceNode = function replaceNode(node, old) {
-	    old.parentNode.replaceChild(node, old);
+	    if (old.parentNode) {
+	        old.parentNode.replaceChild(node, old);
+	    }
 	};
 
 	var judgeNull = function judgeNull(value) {
@@ -330,6 +347,8 @@
 
 	var _parser = __webpack_require__(5);
 
+	var _util = __webpack_require__(2);
+
 	var VElse = function VElse() {
 	    _parser.Parser.apply(this, arguments);
 	};
@@ -339,7 +358,7 @@
 	velse.parse = function () {
 	    console.log('velse parser parse');
 	    var node = this.node;
-	    this.newPosition = storageDom(node);
+	    this.newPosition = (0, _util.storageDom)(node);
 	    this.bind();
 	};
 
@@ -349,9 +368,9 @@
 	    var newPosition = this.newPosition;
 
 	    if (flag) {
-	        replaceNode(node, newPosition);
+	        (0, _util.replaceNode)(node, newPosition);
 	    } else {
-	        replaceNode(newPosition, node);
+	        (0, _util.replaceNode)(newPosition, node);
 	    }
 	};
 
@@ -486,12 +505,13 @@
 
 
 	var Parser = function Parser(raw, scope) {
-	    this.model = scope.$model;
+	    Object.assign(this, scope);
+	    //this.model=scope.$model;
 	    this.raw = raw;
-	    this.node = scope.$node;
-	    this.parentNode = scope.$parentNode;
-	    this.nextNode = scope.$nextNode;
-
+	    //this.node=scope.$node;
+	    //this.parentNode=scope.$parentNode;
+	    //this.nextNode=scope.$nextNode;
+	    //
 	    this.parse();
 	};
 
@@ -518,7 +538,6 @@
 	});
 	function Directive(parser) {
 	    this.parser = parser;
-
 	    //this.vm = vm;
 	    //this.el = el;
 	    //el._directive = el._directive || [];
@@ -534,7 +553,6 @@
 
 	    mount: function mount() {
 	        this.bind();
-
 	        console.log('mount');
 	    },
 
@@ -542,8 +560,16 @@
 	        console.log('update');
 	        var parser = this.parser;
 	        var model = parser.model;
+
 	        var raw = parser.raw;
-	        parser.update(model[raw]);
+
+	        var val;
+	        if (typeof model == 'string') {
+	            val = model;
+	        } else {
+	            val = model[raw];
+	        }
+	        parser.update(val);
 	    },
 
 	    unbind: function unbind() {
@@ -695,31 +721,64 @@
 
 	var _parser = __webpack_require__(5);
 
+	var _util = __webpack_require__(2);
+
+	var _index = __webpack_require__(3);
+
+	var _index2 = _interopRequireDefault(_index);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 	var VFor = function VFor() {
 	    _parser.Parser.apply(this, arguments);
 	};
 
 	var vfor = (0, _parser.extend)(VFor);
 
-	vfor.bind = function () {
-	    console.log('vfor parser parse');
+	vfor.parse = function () {
+	    console.log('vfor  parse');
+	    var node = this.node;
+	    var t_array = this.raw.split(/\s+/);
+	    this.alias = t_array[0];
+	    this.raw = t_array[2];
+	    this.newPosition = (0, _util.storageDom)(node);
+	    this.arrayCache = [];
+	    this.domCache = [];
+
+	    this.bind();
 	};
 
 	vfor.update = function (items, item) {
-
 	    var parentNode = this.parentNode;
 	    var node = this.node;
-	    var end = this.end;
-	    var arrayCache = this.$arrayCache;
-	    var domCache = this.$domCache;
-
+	    var newPosition = this.newPosition;
+	    var arrayCache = this.arrayCache;
+	    var domCache = this.domCache;
+	    var attrs = this.attrs;
 	    if (arrayCache.length == 0) {
 	        items.forEach(function (_item) {
-	            var fragment = createFragment();
+	            var fragment = (0, _util.createFragment)();
 	            var newNode = node.cloneNode(true);
-	            singleDom(node, newNode, item, _item);
+	            var direct_array = [];
+	            var scope = {
+	                node: newNode,
+	                direct_array: direct_array,
+	                model: _item
+	            };
+
+	            attrs.forEach(function (attr) {
+	                var name = attr.name;
+	                var val = attr.value;
+	                var directiveType = 'v' + /v-(\w+)/.exec(name)[1];
+	                var Parser = _index2.default[directiveType];
+	                var parser = new Parser(val, scope);
+	                direct_array.push(parser);
+	                parser.directive.update();
+	            });
+
+	            //singleDom(node, newNode, item, _item);
 	            fragment.appendChild(newNode);
-	            parentNode.insertBefore(fragment, end);
+	            parentNode.insertBefore(fragment, newPosition);
 	            arrayCache.push(_item);
 	            domCache.push(newNode);
 	        });
@@ -731,18 +790,18 @@
 
 	var correctDom = function correctDom(items, item, diff) {
 	    var diffArray = diff.slice();
-	    var domCache = this.$domCache;
-	    var arrayCache = this.$arrayCache;
-	    var node = this.$node;
-	    var end = this.$end;
-	    var parentNode = this.$parentNode;
+	    var domCache = this.domCache;
+	    var arrayCache = this.arrayCache;
+	    var node = this.node;
+	    var newPosition = this.newPosition;
+	    var parentNode = this.parentNode;
 
 	    diffArray.forEach(function (_item) {
-	        var fragment = createFragment();
+	        var fragment = (0, _util.createFragment)();
 	        var newNode = node.cloneNode(true);
 	        var val = items[item];
 	        if (val) {
-	            singleDom(node, newNode, obj, val);
+	            singleDom(node, newNode, alias, val);
 	        } else {
 	            parentNode.removeChild(domCache[_item]);
 	            delete domCache[_item];
@@ -751,9 +810,9 @@
 	        }
 	        fragment.appendChild(newNode);
 	        if (domCache[_item]) {
-	            replaceNode(fragment, domCache[_item]);
+	            (0, _util.replaceNode)(fragment, domCache[_item]);
 	        } else {
-	            parentNode.insertBefore(fragment, end);
+	            parentNode.insertBefore(fragment, newPosition);
 	        }
 	        domCache[_item] = newNode;
 	        arrayCache[_item] = items[_item];
@@ -1003,8 +1062,8 @@
 	var render = function render() {
 	    var cache = this.$cache;
 	    cache.forEach(function (item) {
-	        var $direct_array = item.$direct_array;
-	        $direct_array.forEach(function (directive) {
+	        var direct_array = item.direct_array;
+	        direct_array.forEach(function (directive) {
 	            directive.directive.update();
 	            //type_array[expression].call(item, directive);
 	        });

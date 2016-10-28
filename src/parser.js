@@ -107,12 +107,13 @@ import observe from './observe';
 
 
 var Parser = function (raw,scope) {
-    this.model=scope.$model;
+    Object.assign(this, scope);
+    //this.model=scope.$model;
     this.raw=raw;
-    this.node=scope.$node;
-    this.parentNode=scope.$parentNode;
-    this.nextNode=scope.$nextNode;
-
+    //this.node=scope.$node;
+    //this.parentNode=scope.$parentNode;
+    //this.nextNode=scope.$nextNode;
+    //
     this.parse();
 };
 

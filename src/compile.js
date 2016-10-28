@@ -1,6 +1,6 @@
 import {textReg,removeAttribute,stringParse,toArray} from './util';
 import directives from './directives';
-import Directive from './directive';
+
 var type_array = [
     'v-text', 'v-show', 'v-model', 'v-for', 'v-if', 'v-else'
 ];
@@ -33,35 +33,53 @@ var paserNode = function (node) {
     var direct_array = [];
     var $model = this.$model;
     var scope = {
-        $parentNode: node.parentNode,
-        $nextNode: node.nextElementSibling,
-        $node: node,
-        $direct_array: direct_array,
-        $model: $model
+        parentNode: node.parentNode,
+        nextNode: node.nextElementSibling,
+        node: node,
+        direct_array: direct_array,
+        model: $model
     };
 
     var attributes = toArray(node.attributes);
     var textContent = node.textContent;
-    attributes.forEach(attr=> {
-        var name=attr.name;
-        var val=attr.value;
-        if (isDirective(name)){
-            var directiveType = 'v'+/v-(\w+)/.exec(name)[1];
-            var Parser = directives[directiveType];
-            removeAttribute(node, name);
-            direct_array.push(new Parser(val,scope));
+    var attrs = [];
+    var vfor;
 
+    attributes.forEach(attr=> {
+        var name = attr.name;
+        if (isDirective(name)) {
+            if (name == 'v-for') {
+                vfor = attr;
+            }else{
+                attrs.push(attr);
+            }
+
+            removeAttribute(node, name);
         }
     });
 
+    //bug  nodeType=3
     var textValue = stringParse(textContent);
-
     if (textValue) {
-        var directiveType = 'vtext';
-        var Parser = directives[directiveType];
+        attrs.push({
+            name:'v-text',
+            value:textValue
+        });
         node.textContent = '';
-        direct_array.push(new Parser(textValue,scope));
     }
+
+    if (vfor) {
+        scope.attrs=attrs;
+        attrs = [vfor];
+    }
+
+    attrs.forEach(function (attr) {
+        var name = attr.name;
+        var val = attr.value;
+        var directiveType = 'v' + /v-(\w+)/.exec(name)[1];
+        var Parser = directives[directiveType];
+        direct_array.push(new Parser(val, scope));
+    });
 
     return scope;
 };
