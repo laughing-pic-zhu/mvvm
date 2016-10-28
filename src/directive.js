@@ -19,14 +19,13 @@ Directive.prototype = {
     },
 
     update: function () {
-        console.log('update');
         var parser = this.parser;
         var model = parser.model;
 
         var raw = parser.raw;
 
         var val;
-        if(typeof model=='string'){
+        if(typeof model!='object'){
             val=model
         }else{
             val=model[raw]

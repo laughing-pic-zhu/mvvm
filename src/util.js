@@ -22,16 +22,6 @@ var contrastArray = function (_old, _new) {
     return a;
 };
 
-
-var singleDom = function (node, newNode, value, _item) {
-    var textContent = node.getAttribute('v-text');
-    if (textContent == value) {
-        newNode.textContent = _item;
-    } else {
-        newNode.textContent = '';
-    }
-};
-
 var replaceNode = function (node, old) {
     if(old.parentNode){
     old.parentNode.replaceChild(node, old);
@@ -80,7 +70,6 @@ var storageDom = function (node) {
 export {
     createAnchor,
     contrastArray,
-    singleDom,
     replaceNode,
     judgeNull,
     stringParse,
