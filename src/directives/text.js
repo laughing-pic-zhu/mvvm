@@ -1,14 +1,13 @@
-import {Parser,extend} from '../parser'
-import Directive from '../directive'
+import {Directive,extend} from '../directive'
 
 var VText = function () {
-    Parser.apply(this, arguments);
+    Directive.apply(this, arguments);
 };
 
 var vt = extend(VText);
 
-vt.parse = function (val) {
-    this.bind();
+vt.bind = function (val) {
+    this._bind();
 };
 
 vt.update = function (textContent) {
@@ -17,7 +16,7 @@ vt.update = function (textContent) {
         textContent = textContent.apply(model);
     }
 
-    this.node.textContent = textContent;
+    this.el.textContent = textContent;
 };
 
 export default VText

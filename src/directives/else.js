@@ -1,28 +1,28 @@
-import {Parser,extend} from '../parser'
+import {Directive,extend} from '../directive'
 import {storageDom,replaceNode} from '../util'
 
 var VElse = function () {
-    Parser.apply(this,arguments);
+    Directive.apply(this,arguments);
 };
 
 var velse = extend(VElse);
 
-velse.parse = function () {
-    console.log('velse parser parse');
-    var node=this.node;
-    this.newPosition=storageDom(node);
-    this.bind();
+velse.bind = function () {
+    console.log('velse directive bind');
+    var el=this.el;
+    this.newPosition=storageDom(el);
+    this._bind();
 };
 
 velse.update = function () {
-    var node = this.node;
-    var flag = !node.judge;
+    var el = this.el;
+    var flag = !el.judge;
     var newPosition = this.newPosition;
 
     if (flag) {
-        replaceNode(node,newPosition);
+        replaceNode(el,newPosition);
     } else {
-        replaceNode(newPosition,node);
+        replaceNode(newPosition,el);
     }
 };
 

@@ -1,23 +1,27 @@
-import {Parser,extend} from '../parser'
+import {Directive,extend} from '../directive'
 
 var VModel = function () {
-    Parser.apply(this, arguments);
+    Directive.apply(this, arguments);
 };
 
 var vmodel = extend(VModel);
 
-vmodel.parse = function () {
-    this.node.addEventListener('input', onchange.bind(this), false);
-    this.bind();
+vmodel.bind = function () {
+	var raw=this.raw;
+	var model=this.vm.model
+	if(!model.hasOwnProperty(raw)){
+		model[raw]='';
+	}
+    this.el.addEventListener('input', onchange.bind(this,raw), false);
+    this._bind();
 };
 
 vmodel.update = function (content) {
-    this.node.value = content || '';
+    this.el.value = content || '';
 };
 
-var onchange = function () {
-    var raw=this.raw;
-    this.model[raw] = event.target.value;
+var onchange = function (raw) {
+    this.vm.model[raw] = event.target.value;
 };
 
 export default VModel

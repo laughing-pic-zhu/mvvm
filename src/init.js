@@ -1,18 +1,15 @@
 import compile from './compile';
 import parse from './parser';
-import observe from './observe';
-import render from './update';
+import Observe from './observe';
 
-var MVVM = function (params) {
-    this.$vm = document.querySelector(params.el);
-    this.$model = params.data || {};
-    this.$cache = [];
-    compile.call(this,this.$vm);
-    //parse.call(this);
-    observe.call(this,this.$model,render);
-    render.call(this);
+var MVVM = function(params) {
+	this.el = document.querySelector(params.el);
+	this.model = params.data || {};
+	this.cache = [];
+	this.direct_array=[];
+	new Observe(this.model);
+	compile(this);
+	
 };
 
-window.MVVM=MVVM;
-
-
+window.MVVM = MVVM;

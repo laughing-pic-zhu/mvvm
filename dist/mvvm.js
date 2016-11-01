@@ -50,28 +50,23 @@
 
 	var _compile2 = _interopRequireDefault(_compile);
 
-	var _parser = __webpack_require__(5);
+	var _parser = __webpack_require__(13);
 
 	var _parser2 = _interopRequireDefault(_parser);
 
-	var _observe = __webpack_require__(7);
+	var _observe = __webpack_require__(14);
 
 	var _observe2 = _interopRequireDefault(_observe);
-
-	var _update = __webpack_require__(14);
-
-	var _update2 = _interopRequireDefault(_update);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var MVVM = function MVVM(params) {
-	    this.$vm = document.querySelector(params.el);
-	    this.$model = params.data || {};
-	    this.$cache = [];
-	    _compile2.default.call(this, this.$vm);
-	    //parse.call(this);
-	    _observe2.default.call(this, this.$model, _update2.default);
-	    _update2.default.call(this);
+		this.el = document.querySelector(params.el);
+		this.model = params.data || {};
+		this.cache = [];
+		this.direct_array = [];
+		new _observe2.default(this.model);
+		(0, _compile2.default)(this);
 	};
 
 	window.MVVM = MVVM;
@@ -96,39 +91,40 @@
 
 	var type_array = ['v-text', 'v-show', 'v-model', 'v-for', 'v-if', 'v-else'];
 
-	var compile = function compile(dom) {
-	    addQueue.call(this, dom);
-	    parseQueue.call(this);
+	var compile = function compile(vm) {
+	    var el = vm.el;
+	    addQueue(vm, el);
+	    parseQueue(vm);
 	};
 
-	var addQueue = function addQueue(nodes) {
+	var addQueue = function addQueue(vm, nodes) {
 	    if (nodes.nodeType == 1) {
 	        if (hasDirective(nodes)) {
-	            this.$cache.push(nodes);
+	            vm.cache.push(nodes);
 	        }
 	        if (nodes.hasChildNodes()) {
 	            nodes.childNodes.forEach(function (item) {
-	                addQueue.call(this, item);
+	                addQueue(vm, item);
 	            }, this);
 	        }
 	    }
 	};
 
-	var parseQueue = function parseQueue() {
-	    this.$cache = this.$cache.map(function (node) {
-	        return paserNode.call(this, node);
-	    }, this);
+	var parseQueue = function parseQueue(vm) {
+	    vm.cache = vm.cache.map(function (node) {
+	        return paserNode(vm, node);
+	    }, vm);
 	};
 
-	var paserNode = function paserNode(node) {
-	    var direct_array = [];
-	    var $model = this.$model;
+	var paserNode = function paserNode(vm, node) {
+	    var model = vm.model;
+	    var direct_array = vm.direct_array;
 	    var scope = {
 	        parentNode: node.parentNode,
 	        nextNode: node.nextElementSibling,
-	        node: node,
-	        direct_array: direct_array,
-	        model: $model
+	        el: node,
+	        model: model,
+	        direct_array: direct_array
 	    };
 
 	    var attributes = (0, _util.toArray)(node.attributes);
@@ -168,8 +164,10 @@
 	        var name = attr.name;
 	        var val = attr.value;
 	        var directiveType = 'v' + /v-(\w+)/.exec(name)[1];
-	        var Parser = _directives2.default[directiveType];
-	        direct_array.push(new Parser(val, scope));
+	        var Directive = _directives2.default[directiveType];
+	        if (Directive) {
+	            direct_array.push(new Directive(vm, val, scope));
+	        }
 	    });
 
 	    return scope;
@@ -278,6 +276,7 @@
 	    replaceNode(newPosition, node);
 	    return newPosition;
 	};
+
 	exports.createAnchor = createAnchor;
 	exports.contrastArray = contrastArray;
 	exports.replaceNode = replaceNode;
@@ -303,29 +302,29 @@
 
 	var _else2 = _interopRequireDefault(_else);
 
-	var _if = __webpack_require__(9);
+	var _if = __webpack_require__(8);
 
 	var _if2 = _interopRequireDefault(_if);
 
-	var _for = __webpack_require__(10);
+	var _for = __webpack_require__(9);
 
 	var _for2 = _interopRequireDefault(_for);
 
-	var _show = __webpack_require__(11);
+	var _show = __webpack_require__(10);
 
 	var _show2 = _interopRequireDefault(_show);
 
-	var _text = __webpack_require__(12);
+	var _text = __webpack_require__(11);
 
 	var _text2 = _interopRequireDefault(_text);
 
-	var _model = __webpack_require__(13);
+	var _model = __webpack_require__(12);
 
 	var _model2 = _interopRequireDefault(_model);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	exports.default = { velse: _else2.default, vif: _if2.default, vfor: _for2.default, vshow: _show2.default, vtext: _text2.default, vmodel: _model2.default };
+	exports.default = { vif: _if2.default, vfor: _for2.default, vshow: _show2.default, vtext: _text2.default, vmodel: _model2.default };
 
 /***/ },
 /* 4 */
@@ -337,32 +336,32 @@
 	    value: true
 	});
 
-	var _parser = __webpack_require__(5);
+	var _directive = __webpack_require__(5);
 
 	var _util = __webpack_require__(2);
 
 	var VElse = function VElse() {
-	    _parser.Parser.apply(this, arguments);
+	    _directive.Directive.apply(this, arguments);
 	};
 
-	var velse = (0, _parser.extend)(VElse);
+	var velse = (0, _directive.extend)(VElse);
 
-	velse.parse = function () {
-	    console.log('velse parser parse');
-	    var node = this.node;
-	    this.newPosition = (0, _util.storageDom)(node);
-	    this.bind();
+	velse.bind = function () {
+	    console.log('velse directive bind');
+	    var el = this.el;
+	    this.newPosition = (0, _util.storageDom)(el);
+	    this._bind();
 	};
 
 	velse.update = function () {
-	    var node = this.node;
-	    var flag = !node.judge;
+	    var el = this.el;
+	    var flag = !el.judge;
 	    var newPosition = this.newPosition;
 
 	    if (flag) {
-	        (0, _util.replaceNode)(node, newPosition);
+	        (0, _util.replaceNode)(el, newPosition);
 	    } else {
-	        (0, _util.replaceNode)(newPosition, node);
+	        (0, _util.replaceNode)(newPosition, el);
 	    }
 	};
 
@@ -377,199 +376,125 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	exports.extend = exports.Parser = undefined;
+	exports.extend = exports.Directive = undefined;
 
-	var _util = __webpack_require__(2);
+	var _watcher = __webpack_require__(6);
 
-	var _directive = __webpack_require__(6);
-
-	var _directive2 = _interopRequireDefault(_directive);
-
-	var _observe = __webpack_require__(7);
-
-	var _observe2 = _interopRequireDefault(_observe);
+	var _watcher2 = _interopRequireDefault(_watcher);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	//var parse = function () {
-	//    this.$cache = this.$cache.map(function (node) {
-	//        return paserNode.call(this, node);
-	//    }, this);
-	//};
-	//
-	//var storageDom = function (node) {
-	//    this.$parentNode = node.parentNode;
-	//    this.$nextNode = node.nextElementSibling;
-	//    this.$node = node;
-	//    this.$direct_array = [];
-	//};
-	//
-	//var onchange = function (attr) {
-	//    this.$model[attr] = event.target.value;
-	//};
-	//
-	//var paserNode = function (node) {
-	//    var scope = {};
-	//    storageDom.call(scope, node);
-	//    var text = node.getAttribute('v-text');
-	//    var show = node.getAttribute('v-show');
-	//    var model = node.getAttribute('v-model');
-	//    var vFor = node.getAttribute('v-for');
-	//    var vIf = node.getAttribute('v-if');
-	//    var vElse = node.hasAttribute('v-else');
-	//    var textContent = node.textContent;
-	//    var $model = this.$model;
-	//    var direct_array = scope.$direct_array;
-	//    if (textContent) {
-	//        text = stringParse(textContent);
-	//    }
-	//    if (text) {
-	//        scope.text = text;
-	//        var descriptor = {
-	//            expression: 'v-text',
-	//            raw: text
-	//        };
-	//        removeAttribute(node, 'v-text');
-	//        direct_array.push(new Directive(descriptor, $model, node));
-	//    }
-	//    if (show) {
-	//        scope.show = show;
-	//        var descriptor = {
-	//            expression: 'v-show',
-	//            raw: show,
-	//            key: 'display'
-	//        };
-	//        removeAttribute(node, 'v-show');
-	//        direct_array.push(new Directive(descriptor, $model, node));
-	//    }
-	//    if (model) {
-	//        if (!$model.hasOwnProperty(model)) {
-	//            $model[model] = '';
-	//        }
-	//        scope.model = model;
-	//        var descriptor = {
-	//            expression: 'v-model',
-	//            raw: model
-	//        };
-	//        removeAttribute(node, 'v-model');
-	//        direct_array.push(new Directive(descriptor, $model, node));
-	//        node.addEventListener('input', onchange.bind(this, model), false);
-	//    }
-	//    if (vFor) {
-	//        var t_array = vFor.split(/\s+/);
-	//        var newNode = createAnchor();
-	//        scope.$end = newNode;
-	//        scope.$arrayCache = [];
-	//        scope.$domCache = [];
-	//
-	//        replaceNode(newNode, node);
-	//        var descriptor = {
-	//            expression: 'v-for',
-	//            list: t_array[2],
-	//            obj: t_array[0]
-	//        };
-	//
-	//        removeAttribute(node, 'v-for');
-	//        direct_array.push(new Directive(descriptor, $model, node));
-	//    }
-	//    if (vIf) {
-	//        scope.if = vIf;
-	//        var descriptor = {
-	//            expression: 'v-if',
-	//            raw: vIf
-	//        };
-	//        removeAttribute(node, 'v-if');
-	//        direct_array.push(new Directive(descriptor, $model, node));
-	//    }
-	//
-	//    if (vElse) {
-	//        scope.else = true;
-	//        var descriptor = {
-	//            expression: 'v-else',
-	//            raw: vElse
-	//        };
-	//        removeAttribute(node, 'v-else');
-	//        direct_array.push(new Directive(descriptor, $model, node));
-	//    }
-	//
-	//    return scope;
-	//};
-
-
-	var Parser = function Parser(raw, scope) {
+	function Directive(vm, raw, scope) {
+	    this.vm = vm;
 	    Object.assign(this, scope);
 	    this.raw = raw;
-	    this.parse();
-	};
+	    var el = this.el;
+	    el._directive = el._directive || [];
+	    el._directive.push(this);
 
-	Parser.prototype.bind = function () {
-	    this.directive = new _directive2.default(this);
-	    this.directive.mount();
-	};
-
-	var extend = function extend(typeParser) {
-	    return typeParser.prototype = Object.create(Parser.prototype);
-	};
-
-	exports.Parser = Parser;
-	exports.extend = extend;
-
-/***/ },
-/* 6 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-
-	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-
-	function Directive(parser) {
-	    this.parser = parser;
-	    //this.vm = vm;
-	    //this.el = el;
-	    //el._directive = el._directive || [];
-	    //el._directive.push(this);
+	    this.bind();
 	}
 
 	Directive.prototype = {
 	    constructor: Directive,
 
-	    bind: function bind() {
-	        console.log('bind');
-	    },
-
-	    mount: function mount() {
-	        this.bind();
-	        console.log('mount');
-	    },
-
-	    update: function update() {
-	        var parser = this.parser;
-	        var model = parser.model;
-
-	        var raw = parser.raw;
-
-	        var val;
-	        if ((typeof model === 'undefined' ? 'undefined' : _typeof(model)) != 'object') {
-	            val = model;
-	        } else {
-	            val = model[raw];
-	        }
-	        parser.update(val);
+	    _bind: function _bind() {
+	        var vm = this.vm;
+	        var expression = this.raw;
+	        var watcher = new _watcher2.default(vm, expression, this.update.bind(this));
+	        this.update(watcher.value);
 	    },
 
 	    unbind: function unbind() {
-	        console.log('unbind');
+	        console.log('directive unbind');
 	    }
 	};
 
-	exports.default = Directive;
+	var extend = function extend(typeDirective) {
+	    return typeDirective.prototype = Object.create(Directive.prototype);
+	};
+
+	exports.Directive = Directive;
+	exports.extend = extend;
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+
+	var _depend = __webpack_require__(7);
+
+	var _depend2 = _interopRequireDefault(_depend);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var Watcher = function Watcher(vm, expression, update) {
+		this.vm = vm;
+		// this.cb = cb;
+		this.expression = expression;
+		this.update = update;
+		_depend2.default.target = this;
+		this.value = this.getValue();
+		_depend2.default.target = null;
+	};
+
+	Watcher.prototype.run = function () {
+		this.value = this.getValue();
+		this.update(this.value);
+	};
+
+	Watcher.prototype.getValue = function () {
+		var vm = this.vm;
+		var model = vm.model;
+		var expression = this.expression;
+		var getter = getFunction('scope.' + expression);
+		return getter(model);
+	};
+
+	function getFunction(body) {
+		return new Function('scope', 'return ' + body);
+	}
+
+	exports.default = Watcher;
 
 /***/ },
 /* 7 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+		value: true
+	});
+	function Depend() {
+		this.cache = [];
+	}
+
+	var dp = Depend.prototype;
+
+	dp.addSub = function (callback) {
+		this.cache.push(callback);
+	};
+
+	dp.notify = function () {
+		this.cache.forEach(function (call) {
+			call.run();
+		});
+	};
+
+	dp.destory = function () {
+		this.cache = [];
+	};
+
+	exports.default = Depend;
+
+/***/ },
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -578,91 +503,54 @@
 	    value: true
 	});
 
-	var _watch = __webpack_require__(8);
+	var _directive = __webpack_require__(5);
 
-	var _watch2 = _interopRequireDefault(_watch);
+	var _util = __webpack_require__(2);
 
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var observe = function observe(model, update) {
-	    _watch2.default.call(this, model, update);
+	var VIf = function VIf() {
+	    _directive.Directive.apply(this, arguments);
 	};
 
-	exports.default = observe;
+	var vif = (0, _directive.extend)(VIf);
 
-/***/ },
-/* 8 */
-/***/ function(module, exports) {
+	vif.bind = function () {
+	    console.log('vif directive bind');
+	    var el = this.el;
+	    var nextNode = this.nextNode;
+	    var parentNode = this.parentNode;
+	    if (nextNode && nextNode.hasAttribute('v-else')) {
+	        this.elseNode = nextNode;
+	        parentNode.removeChild(nextNode);
+	    }
+	    this.newPosition = (0, _util.storageDom)(el);
+	    this._first = true;
+	    this._bind();
+	};
 
-	'use strict';
+	vif.update = function (judge) {
+	    var el = this.el;
+	    var elseNode = this.elseNode;
+	    var parentNode = this.parentNode;
+	    var newPosition = this.newPosition;
 
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	var Watch = function Watch(obj, callback) {
-	    this.callback = callback;
-	    this.$observe = function (_obj, path) {
-	        var type = Object.prototype.toString.call(_obj);
-	        if (type == '[object Object]' || type == '[object Array]') {
-	            this.$observeObj(_obj, path);
-	            if (type == '[object Array]') {
-	                this.$cloneArray(_obj, path);
-	            }
+	    if (judge) {
+	        if (!this._first && elseNode) {
+	            parentNode.removeChild(elseNode);
 	        }
-	    };
 
-	    this.$observeObj = function (obj, path) {
-	        var t = this;
-	        Object.keys(obj).forEach(function (prop) {
-	            var val = obj[prop];
-	            var tpath = path.slice(0);
-	            tpath.push(prop);
-	            Object.defineProperty(obj, prop, {
-	                get: function get() {
-	                    return val;
-	                },
-	                set: function set(newVal) {
-	                    var temp = val;
-	                    val = newVal;
-	                    t.callback(tpath, newVal, temp);
-	                }
-	            });
-	            t.$observe(val, tpath);
-	        });
-	    };
-
-	    this.$cloneArray = function (a_array, path) {
-	        var ORP = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
-	        var arrayProto = Array.prototype;
-	        var newProto = Object.create(arrayProto);
-	        var t = this;
-	        ORP.forEach(function (prop) {
-	            Object.defineProperty(newProto, prop, {
-	                value: function value(newVal) {
-	                    arrayProto[prop].apply(a_array, arguments);
-	                    t.callback(a_array);
-	                },
-	                enumerable: false,
-	                configurable: true,
-	                writable: true
-	            });
-	        });
-	        a_array.__proto__ = newProto;
-	    };
-
-	    this.$observe(obj, []);
+	        parentNode.insertBefore(el, newPosition);
+	    } else {
+	        if (!this._first) {
+	            parentNode.removeChild(el);
+	        }
+	        if (elseNode) {
+	            parentNode.insertBefore(elseNode, newPosition);
+	        }
+	    }
+	    this._first = false;
 	};
 
-	//var _array=[1,2];
-	//
-	//function callback(){
-	//    console.log(1)
-	//}
-	//
-	//Watch(_array,callback);
-
-	//_array.push(1);
-	exports.default = Watch;
+	exports.default = VIf;
 
 /***/ },
 /* 9 */
@@ -674,51 +562,7 @@
 	    value: true
 	});
 
-	var _parser = __webpack_require__(5);
-
-	var _util = __webpack_require__(2);
-
-	var VIf = function VIf() {
-	    _parser.Parser.apply(this, arguments);
-	};
-
-	var vif = (0, _parser.extend)(VIf);
-
-	vif.parse = function () {
-	    console.log('vif directive bind');
-	    var node = this.node;
-	    this.newPosition = (0, _util.storageDom)(node);
-	    this.bind();
-	};
-
-	vif.update = function (judge) {
-	    var node = this.node;
-	    var nextNode = this.nextNode;
-	    var newPosition = this.newPosition;
-	    var flag;
-	    if (judge) {
-	        (0, _util.replaceNode)(node, newPosition);
-	        flag = true;
-	    } else {
-	        (0, _util.replaceNode)(newPosition, node);
-	        flag = false;
-	    }
-	    nextNode.judge = flag;
-	};
-
-	exports.default = VIf;
-
-/***/ },
-/* 10 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-
-	var _parser = __webpack_require__(5);
+	var _directive = __webpack_require__(5);
 
 	var _util = __webpack_require__(2);
 
@@ -729,22 +573,22 @@
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var VFor = function VFor() {
-	    _parser.Parser.apply(this, arguments);
+	    _directive.Directive.apply(this, arguments);
 	};
 
-	var vfor = (0, _parser.extend)(VFor);
+	var vfor = (0, _directive.extend)(VFor);
 
-	vfor.parse = function () {
-	    console.log('vfor  parse');
-	    var node = this.node;
+	vfor.bind = function () {
+	    console.log('vfor  bind');
+	    var el = this.el;
 	    var t_array = this.raw.split(/\s+/);
 	    this.alias = t_array[0];
 	    this.raw = t_array[2];
-	    this.newPosition = (0, _util.storageDom)(node);
+	    this.newPosition = (0, _util.storageDom)(el);
 	    this.arrayCache = [];
 	    this.domCache = [];
 
-	    this.bind();
+	    this._bind();
 	};
 
 	vfor.update = function (newItems, oldItem) {
@@ -770,25 +614,24 @@
 
 	vfor.createFragment = function (item) {
 	    var attrs = this.attrs;
-	    var node = this.node;
+	    var el = this.el;
 	    var fragment = (0, _util.createFragment)();
-	    var newNode = node.cloneNode(true);
-	    var direct_array = [];
-
+	    var newNode = el.cloneNode(true);
+	    var direct_array = this.direct_array;
+	    var vm = this.vm;
 	    var scope = {
 	        node: newNode,
-	        direct_array: direct_array,
-	        model: item
+	        model: item,
+	        el: el
 	    };
 
 	    attrs.forEach(function (attr) {
 	        var name = attr.name;
 	        var val = attr.value;
 	        var directiveType = 'v' + /v-(\w+)/.exec(name)[1];
-	        var Parser = _index2.default[directiveType];
-	        var parser = new Parser(val, scope);
-	        direct_array.push(parser);
-	        parser.directive.update();
+	        var Directive = _index2.default[directiveType];
+	        var directive = new Directive(vm, val, scope);
+	        direct_array.push(directive);
 	    });
 
 	    fragment.appendChild(newNode);
@@ -813,7 +656,6 @@
 	        if (type == 'add') {
 	            domCache.push(fragment.children[0]);
 	            arrayCache[index] = newItems[index];
-
 	            parentNode.insertBefore(fragment, newPosition);
 	        } else if (type == 'delete') {
 	            parentNode.removeChild(domCache[index]);
@@ -830,6 +672,35 @@
 	exports.default = VFor;
 
 /***/ },
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
+	var _directive = __webpack_require__(5);
+
+	var VShow = function VShow() {
+	    _directive.Directive.apply(this, arguments);
+	};
+
+	var vshow = (0, _directive.extend)(VShow);
+
+	vshow.bind = function () {
+	    this._bind();
+	};
+
+	vshow.update = function (isShow) {
+	    var val = isShow ? 'block' : 'none';
+	    this.el.style.display = val;
+	};
+
+	exports.default = VShow;
+
+/***/ },
 /* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -839,24 +710,28 @@
 	    value: true
 	});
 
-	var _parser = __webpack_require__(5);
+	var _directive = __webpack_require__(5);
 
-	var VShow = function VShow() {
-	    _parser.Parser.apply(this, arguments);
+	var VText = function VText() {
+	    _directive.Directive.apply(this, arguments);
 	};
 
-	var vshow = (0, _parser.extend)(VShow);
+	var vt = (0, _directive.extend)(VText);
 
-	vshow.parse = function () {
-	    this.bind();
+	vt.bind = function (val) {
+	    this._bind();
 	};
 
-	vshow.update = function (isShow) {
-	    var val = isShow ? 'block' : 'none';
-	    this.node.style.display = val;
+	vt.update = function (textContent) {
+	    if (typeof textContent == 'function') {
+	        var model = this.model;
+	        textContent = textContent.apply(model);
+	    }
+
+	    this.el.textContent = textContent;
 	};
 
-	exports.default = VShow;
+	exports.default = VText;
 
 /***/ },
 /* 12 */
@@ -868,34 +743,33 @@
 	    value: true
 	});
 
-	var _parser = __webpack_require__(5);
+	var _directive = __webpack_require__(5);
 
-	var _directive = __webpack_require__(6);
-
-	var _directive2 = _interopRequireDefault(_directive);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var VText = function VText() {
-	    _parser.Parser.apply(this, arguments);
+	var VModel = function VModel() {
+	    _directive.Directive.apply(this, arguments);
 	};
 
-	var vt = (0, _parser.extend)(VText);
+	var vmodel = (0, _directive.extend)(VModel);
 
-	vt.parse = function (val) {
-	    this.bind();
-	};
-
-	vt.update = function (textContent) {
-	    if (typeof textContent == 'function') {
-	        var model = this.model;
-	        textContent = textContent.apply(model);
+	vmodel.bind = function () {
+	    var raw = this.raw;
+	    var model = this.vm.model;
+	    if (!model.hasOwnProperty(raw)) {
+	        model[raw] = '';
 	    }
-
-	    this.node.textContent = textContent;
+	    this.el.addEventListener('input', onchange.bind(this, raw), false);
+	    this._bind();
 	};
 
-	exports.default = VText;
+	vmodel.update = function (content) {
+	    this.el.value = content || '';
+	};
+
+	var onchange = function onchange(raw) {
+	    this.vm.model[raw] = event.target.value;
+	};
+
+	exports.default = VModel;
 
 /***/ },
 /* 13 */
@@ -906,53 +780,105 @@
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
+	exports.extend = exports.Parser = undefined;
 
-	var _parser = __webpack_require__(5);
+	var _directive = __webpack_require__(5);
 
-	var VModel = function VModel() {
-	    _parser.Parser.apply(this, arguments);
+	var _directive2 = _interopRequireDefault(_directive);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var Parser = function Parser(raw, scope) {
+	    Object.assign(this, scope);
+	    this.raw = raw;
+	    this.parse();
 	};
 
-	var vmodel = (0, _parser.extend)(VModel);
-
-	vmodel.parse = function () {
-	    this.node.addEventListener('input', onchange.bind(this), false);
-	    this.bind();
+	Parser.prototype.bind = function () {
+	    this.directive = new _directive2.default(this);
+	    this.directive.bind();
 	};
 
-	vmodel.update = function (content) {
-	    this.node.value = content || '';
+	var extend = function extend(typeParser) {
+	    return typeParser.prototype = Object.create(Parser.prototype);
 	};
 
-	var onchange = function onchange() {
-	    var raw = this.raw;
-	    this.model[raw] = event.target.value;
-	};
-
-	exports.default = VModel;
+	exports.Parser = Parser;
+	exports.extend = extend;
 
 /***/ },
 /* 14 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
 	});
-	var render = function render() {
-	    var cache = this.$cache;
-	    cache.forEach(function (item) {
-	        var _arguments = arguments;
 
-	        var direct_array = item.direct_array;
-	        direct_array.forEach(function (directive) {
-	            directive.directive.update.apply(directive.directive, _arguments);
+	var _depend = __webpack_require__(7);
+
+	var _depend2 = _interopRequireDefault(_depend);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var Observe = function Observe(obj) {
+	    this.$observe = function (_obj) {
+	        var type = Object.prototype.toString.call(_obj);
+	        if (type == '[object Object]' || type == '[object Array]') {
+	            this.$observeObj(_obj);
+	            if (type == '[object Array]') {
+	                this.$cloneArray(_obj);
+	            }
+	        }
+	    };
+
+	    this.$observeObj = function (obj) {
+	        var t = this;
+	        Object.keys(obj).forEach(function (prop) {
+	            var val = obj[prop];
+	            var dep = new _depend2.default();
+
+	            Object.defineProperty(obj, prop, {
+	                get: function get() {
+	                    if (_depend2.default.target) {
+	                        dep.addSub(_depend2.default.target);
+	                    }
+	                    return val;
+	                },
+	                set: function set(newVal) {
+	                    var temp = val;
+	                    val = newVal;
+	                    dep.notify();
+	                }
+	            });
+	            t.$observe(val);
 	        });
-	    });
+	    };
+
+	    this.$cloneArray = function (a_array) {
+	        var ORP = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
+	        var arrayProto = Array.prototype;
+	        var newProto = Object.create(arrayProto);
+	        var t = this;
+	        ORP.forEach(function (prop) {
+	            Object.defineProperty(newProto, prop, {
+	                value: function value(newVal) {
+	                    arrayProto[prop].apply(a_array, arguments);
+	                    dep.notify();
+	                },
+	                enumerable: false,
+	                configurable: true,
+	                writable: true
+	            });
+	        });
+	        a_array.__proto__ = newProto;
+	    };
+
+	    this.$observe(obj, []);
 	};
 
-	exports.default = render;
+	exports.default = Observe;
 
 /***/ }
 /******/ ]);

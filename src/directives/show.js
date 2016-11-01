@@ -1,19 +1,18 @@
-import {Parser,extend} from '../parser'
+import {Directive,extend} from '../directive'
 
 var VShow = function () {
-    Parser.apply(this,arguments);
+    Directive.apply(this,arguments);
 };
 
 var vshow = extend(VShow);
 
-vshow.parse = function () {
-    this.bind();
+vshow.bind = function () {
+    this._bind();
 };
-
 
 vshow.update = function (isShow) {
     var val = isShow ? 'block' : 'none';
-    this.node.style.display = val;
+    this.el.style.display = val;
 };
 
 export default VShow

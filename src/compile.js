@@ -1,43 +1,44 @@
-import {textReg,removeAttribute,stringParse,toArray} from './util';
+import { textReg, removeAttribute, stringParse, toArray } from './util';
 import directives from './directives';
 
 var type_array = [
     'v-text', 'v-show', 'v-model', 'v-for', 'v-if', 'v-else'
 ];
 
-var compile = function (dom) {
-    addQueue.call(this, dom);
-    parseQueue.call(this);
+var compile = function(vm) {
+    var el = vm.el;
+    addQueue(vm, el);
+    parseQueue(vm);
 };
 
-var addQueue = function (nodes) {
+var addQueue = function(vm, nodes) {
     if (nodes.nodeType == 1) {
         if (hasDirective(nodes)) {
-            this.$cache.push(nodes);
+            vm.cache.push(nodes);
         }
         if (nodes.hasChildNodes()) {
-            nodes.childNodes.forEach(function (item) {
-                addQueue.call(this, item);
+            nodes.childNodes.forEach(function(item) {
+                addQueue(vm, item);
             }, this)
         }
     }
 };
 
-var parseQueue = function () {
-    this.$cache = this.$cache.map(function (node) {
-        return paserNode.call(this, node);
-    }, this);
+var parseQueue = function(vm) {
+    vm.cache = vm.cache.map(function(node) {
+        return paserNode(vm, node);
+    }, vm);
 };
 
-var paserNode = function (node) {
-    var direct_array = [];
-    var $model = this.$model;
+var paserNode = function(vm, node) {
+    var model = vm.model;
+    var direct_array = vm.direct_array;
     var scope = {
         parentNode: node.parentNode,
         nextNode: node.nextElementSibling,
-        node: node,
-        direct_array: direct_array,
-        model: $model
+        el: node,
+        model: model,
+        direct_array: direct_array
     };
 
     var attributes = toArray(node.attributes);
@@ -45,12 +46,12 @@ var paserNode = function (node) {
     var attrs = [];
     var vfor;
 
-    attributes.forEach(attr=> {
+    attributes.forEach(attr => {
         var name = attr.name;
         if (isDirective(name)) {
             if (name == 'v-for') {
                 vfor = attr;
-            }else{
+            } else {
                 attrs.push(attr);
             }
 
@@ -62,32 +63,34 @@ var paserNode = function (node) {
     var textValue = stringParse(textContent);
     if (textValue) {
         attrs.push({
-            name:'v-text',
-            value:textValue
+            name: 'v-text',
+            value: textValue
         });
         node.textContent = '';
     }
 
     if (vfor) {
-        scope.attrs=attrs;
+        scope.attrs = attrs;
         attrs = [vfor];
     }
 
-    attrs.forEach(function (attr) {
+    attrs.forEach(function(attr) {
         var name = attr.name;
         var val = attr.value;
         var directiveType = 'v' + /v-(\w+)/.exec(name)[1];
-        var Parser = directives[directiveType];
-        direct_array.push(new Parser(val, scope));
+        var Directive = directives[directiveType];
+        if (Directive) {
+            direct_array.push(new Directive(vm, val, scope));
+        }
     });
 
     return scope;
 };
 
 
-var hasDirective = function (node) {
+var hasDirective = function(node) {
     var flag = false;
-    type_array.forEach(attr=> {
+    type_array.forEach(attr => {
         if (node.hasAttribute(attr)) {
             flag = true;
         }
@@ -101,7 +104,7 @@ var hasDirective = function (node) {
     return flag;
 };
 
-var isDirective = function (attr) {
+var isDirective = function(attr) {
     return /v-(\w.)/.test(attr)
 };
 

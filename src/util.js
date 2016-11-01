@@ -69,6 +69,7 @@ var storageDom = function (node) {
     replaceNode(newPosition, node);
     return newPosition;
 };
+
 export {
     createAnchor,
     contrastArray,

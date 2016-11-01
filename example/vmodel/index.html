@@ -8,7 +8,7 @@
 
 <div id="message">
     <h1 v-text="message"></h1>
-    <h1 >{{message}}</h1>
+    <h1>{{message}}</h1>
     <input type="text" v-model="message"/>
 </div>
 
@@ -17,8 +17,12 @@
 <script src="../../dist/mvvm.js"></script>
 
 <script>
-    new MVVM({
-        el:'#message'
+	var obj={
+		message:111
+	}
+    var app=new MVVM({
+        el:'#message',
+        data:obj
     });
 </script>
 
