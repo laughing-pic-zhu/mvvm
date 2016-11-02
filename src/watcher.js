@@ -1,7 +1,8 @@
 import Depend from './depend'
 
-var Watcher = function(vm, expression, update) {
+var Watcher = function(vm, expression, update, _scope) {
 	this.vm = vm;
+	this._scope = _scope;
 	// this.cb = cb;
 	this.expression = expression;
 	this.update = update;
@@ -10,17 +11,16 @@ var Watcher = function(vm, expression, update) {
 	Depend.target = null;
 }
 
-Watcher.prototype.run=function(){
-	this.value=this.getValue();
+Watcher.prototype.run = function() {
+	this.value = this.getValue();
 	this.update(this.value);
 }
 
 Watcher.prototype.getValue = function() {
-	var vm = this.vm;
-	var model = vm.model;
+	var scope = this._scope.model || this.vm.model;
 	var expression = this.expression;
 	var getter = getFunction('scope.' + expression);
-	return getter(model);
+	return getter(scope);
 }
 
 function getFunction(body) {

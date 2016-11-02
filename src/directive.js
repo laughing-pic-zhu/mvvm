@@ -4,6 +4,7 @@ import Watcher from './watcher'
 function Directive(vm,raw,scope) {
     this.vm = vm;
     Object.assign(this, scope);
+    this._scope=scope;
     this.raw = raw;
     var el=this.el;
     el._directive = el._directive || [];
@@ -17,8 +18,9 @@ Directive.prototype = {
 
     _bind: function() {
         var vm = this.vm;
+        var _scope=this._scope;
         var expression=this.raw;
-        var watcher=new Watcher(vm, expression, this.update.bind(this));
+        var watcher=new Watcher(vm, expression, this.update.bind(this),_scope);
         this.update(watcher.value);
     },
 

@@ -1,6 +1,6 @@
 import compile from './compile';
 import parse from './parser';
-import Observe from './observe';
+import {Observe} from './observe';
 
 var MVVM = function(params) {
 	this.el = document.querySelector(params.el);

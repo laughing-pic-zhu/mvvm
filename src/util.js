@@ -1,10 +1,10 @@
 var textReg = '^{{(.+)}}$';
 
-var createAnchor = function () {
+var createAnchor = function() {
     return document.createTextNode(' ');
 };
 
-var contrastArray = function (_old, _new) {
+var contrastArray = function(_old, _new) {
     var a = [];
     if (_old.length > _new.length) {
         for (var i = 0; i < _old.length; i++) {
@@ -12,32 +12,32 @@ var contrastArray = function (_old, _new) {
                 a.push(i);
             }
         }
-        a.type='delete';
-    } else if(_old.length < _new.length){
+        a.type = 'delete';
+    } else if (_old.length < _new.length) {
         for (var i = 0; i < _new.length; i++) {
             if (_new[i] !== _old[i]) {
                 a.push(i);
             }
         }
-        a.type='add';
+        a.type = 'add';
     }
     return a;
 };
 
-var replaceNode = function (node, old) {
-    if(old.parentNode){
-    old.parentNode.replaceChild(node, old);
+var replaceNode = function(node, old) {
+    if (old.parentNode) {
+        old.parentNode.replaceChild(node, old);
     }
 };
 
-var judgeNull = function (value) {
+var judgeNull = function(value) {
     if (value === undefined || value === null || value === '') {
         return false;
     }
     return true;
 };
 
-var stringParse = function (str) {
+var stringParse = function(str) {
     var array = new RegExp(textReg).exec(str);
     if (array) {
         return array[1];
@@ -45,17 +45,17 @@ var stringParse = function (str) {
     return '';
 };
 
-var createFragment = function () {
+var createFragment = function() {
     return document.createDocumentFragment();
 };
 
-var removeAttribute = function (node, attr) {
+var removeAttribute = function(node, attr) {
     if (node.hasAttribute(attr)) {
         node.removeAttribute(attr);
     }
 };
 
-var toArray = function (list) {
+var toArray = function(list) {
     var length = list.length;
     var array = [];
     while (length--) {
@@ -64,11 +64,15 @@ var toArray = function (list) {
     return array
 };
 
-var storageDom = function (node) {
+var storageDom = function(node) {
     var newPosition = createAnchor();
     replaceNode(newPosition, node);
     return newPosition;
 };
+
+var isArray=function(obj){
+    return Object.prototype.toString.apply(obj)=='[object Array]';
+}
 
 export {
     createAnchor,
@@ -80,5 +84,6 @@ export {
     removeAttribute,
     textReg,
     toArray,
-    storageDom
+    storageDom,
+    isArray
 }

@@ -50,13 +50,11 @@
 
 	var _compile2 = _interopRequireDefault(_compile);
 
-	var _parser = __webpack_require__(13);
+	var _parser = __webpack_require__(14);
 
 	var _parser2 = _interopRequireDefault(_parser);
 
-	var _observe = __webpack_require__(14);
-
-	var _observe2 = _interopRequireDefault(_observe);
+	var _observe = __webpack_require__(10);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -65,7 +63,7 @@
 		this.model = params.data || {};
 		this.cache = [];
 		this.direct_array = [];
-		new _observe2.default(this.model);
+		new _observe.Observe(this.model);
 		(0, _compile2.default)(this);
 	};
 
@@ -277,6 +275,10 @@
 	    return newPosition;
 	};
 
+	var isArray = function isArray(obj) {
+	    return Object.prototype.toString.apply(obj) == '[object Array]';
+	};
+
 	exports.createAnchor = createAnchor;
 	exports.contrastArray = contrastArray;
 	exports.replaceNode = replaceNode;
@@ -287,6 +289,7 @@
 	exports.textReg = textReg;
 	exports.toArray = toArray;
 	exports.storageDom = storageDom;
+	exports.isArray = isArray;
 
 /***/ },
 /* 3 */
@@ -310,15 +313,15 @@
 
 	var _for2 = _interopRequireDefault(_for);
 
-	var _show = __webpack_require__(10);
+	var _show = __webpack_require__(11);
 
 	var _show2 = _interopRequireDefault(_show);
 
-	var _text = __webpack_require__(11);
+	var _text = __webpack_require__(12);
 
 	var _text2 = _interopRequireDefault(_text);
 
-	var _model = __webpack_require__(12);
+	var _model = __webpack_require__(13);
 
 	var _model2 = _interopRequireDefault(_model);
 
@@ -387,6 +390,7 @@
 	function Directive(vm, raw, scope) {
 	    this.vm = vm;
 	    Object.assign(this, scope);
+	    this._scope = scope;
 	    this.raw = raw;
 	    var el = this.el;
 	    el._directive = el._directive || [];
@@ -400,8 +404,9 @@
 
 	    _bind: function _bind() {
 	        var vm = this.vm;
+	        var _scope = this._scope;
 	        var expression = this.raw;
-	        var watcher = new _watcher2.default(vm, expression, this.update.bind(this));
+	        var watcher = new _watcher2.default(vm, expression, this.update.bind(this), _scope);
 	        this.update(watcher.value);
 	    },
 
@@ -433,8 +438,9 @@
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var Watcher = function Watcher(vm, expression, update) {
+	var Watcher = function Watcher(vm, expression, update, _scope) {
 		this.vm = vm;
+		this._scope = _scope;
 		// this.cb = cb;
 		this.expression = expression;
 		this.update = update;
@@ -449,11 +455,10 @@
 	};
 
 	Watcher.prototype.getValue = function () {
-		var vm = this.vm;
-		var model = vm.model;
+		var scope = this._scope.model || this.vm.model;
 		var expression = this.expression;
 		var getter = getFunction('scope.' + expression);
-		return getter(model);
+		return getter(scope);
 	};
 
 	function getFunction(body) {
@@ -570,6 +575,8 @@
 
 	var _index2 = _interopRequireDefault(_index);
 
+	var _observe = __webpack_require__(10);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var VFor = function VFor() {
@@ -619,18 +626,19 @@
 	    var newNode = el.cloneNode(true);
 	    var direct_array = this.direct_array;
 	    var vm = this.vm;
-	    var scope = {
-	        node: newNode,
-	        model: item,
-	        el: el
-	    };
+
+	    var _scope = Object.create(vm);
+	    _scope.model = Object.create(_scope.model);
+	    _scope.el = newNode;
+
+	    (0, _observe.defineProperty)(_scope.model, this.alias, item);
 
 	    attrs.forEach(function (attr) {
 	        var name = attr.name;
 	        var val = attr.value;
 	        var directiveType = 'v' + /v-(\w+)/.exec(name)[1];
 	        var Directive = _index2.default[directiveType];
-	        var directive = new Directive(vm, val, scope);
+	        var directive = new Directive(vm, val, _scope);
 	        direct_array.push(directive);
 	    });
 
@@ -681,6 +689,113 @@
 	    value: true
 	});
 
+	var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+	exports.Observe = Observe;
+	exports.defineProperty = defineProperty;
+
+	var _depend = __webpack_require__(7);
+
+	var _depend2 = _interopRequireDefault(_depend);
+
+	var _util = __webpack_require__(2);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function Observe(obj) {
+	    this.$observe = function (_obj) {
+	        var type = Object.prototype.toString.call(_obj);
+	        if (type == '[object Object]') {
+	            this.$observeObj(_obj);
+	        } else if (type == '[object Array]') {
+	            this.$cloneArray(_obj);
+	        }
+	    };
+
+	    this.$observeObj = function (obj) {
+	        var t = this;
+	        Object.keys(obj).forEach(function (prop) {
+	            var val = obj[prop];
+	            defineProperty(obj, prop, val);
+	            if (prop != '__observe__') {
+	                t.$observe(val);
+	            }
+	        });
+	    };
+
+	    this.$cloneArray = function (a_array) {
+	        var ORP = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
+	        var arrayProto = Array.prototype;
+	        var newProto = Object.create(arrayProto);
+	        var t = this;
+	        ORP.forEach(function (prop) {
+	            Object.defineProperty(newProto, prop, {
+	                value: function value(newVal) {
+	                    var dep = a_array.__observe__;
+	                    arrayProto[prop].apply(a_array, arguments);
+	                    dep.notify();
+	                },
+	                enumerable: false,
+	                configurable: true,
+	                writable: true
+	            });
+	        });
+	        a_array.__proto__ = newProto;
+	    };
+
+	    this.$observe(obj, []);
+	}
+
+	var addObserve = function addObserve(val) {
+	    if (!val || (typeof val === 'undefined' ? 'undefined' : _typeof(val)) != 'object') {
+	        return;
+	    }
+	    var dep = new _depend2.default();
+	    if ((0, _util.isArray)(val)) {
+	        val.__observe__ = dep;
+	        return dep;
+	    }
+	};
+
+	function defineProperty(obj, prop, val) {
+	    if (prop == '__observe__') {
+	        return;
+	    }
+	    val = val || obj[prop];
+	    var dep = new _depend2.default();
+
+	    obj.__observe__ = dep;
+	    var childDep = addObserve(val);
+
+	    Object.defineProperty(obj, prop, {
+	        get: function get() {
+	            var target = _depend2.default.target;
+	            if (target) {
+	                dep.addSub(target);
+	                if (childDep) {
+	                    childDep.addSub(target);
+	                }
+	            }
+	            return val;
+	        },
+	        set: function set(newVal) {
+	            var temp = val;
+	            val = newVal;
+	            dep.notify();
+	        }
+	    });
+	}
+
+/***/ },
+/* 11 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+
 	var _directive = __webpack_require__(5);
 
 	var VShow = function VShow() {
@@ -701,7 +816,7 @@
 	exports.default = VShow;
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -734,7 +849,7 @@
 	exports.default = VText;
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -772,7 +887,7 @@
 	exports.default = VModel;
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -805,80 +920,6 @@
 
 	exports.Parser = Parser;
 	exports.extend = extend;
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-
-	var _depend = __webpack_require__(7);
-
-	var _depend2 = _interopRequireDefault(_depend);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-	var Observe = function Observe(obj) {
-	    this.$observe = function (_obj) {
-	        var type = Object.prototype.toString.call(_obj);
-	        if (type == '[object Object]' || type == '[object Array]') {
-	            this.$observeObj(_obj);
-	            if (type == '[object Array]') {
-	                this.$cloneArray(_obj);
-	            }
-	        }
-	    };
-
-	    this.$observeObj = function (obj) {
-	        var t = this;
-	        Object.keys(obj).forEach(function (prop) {
-	            var val = obj[prop];
-	            var dep = new _depend2.default();
-
-	            Object.defineProperty(obj, prop, {
-	                get: function get() {
-	                    if (_depend2.default.target) {
-	                        dep.addSub(_depend2.default.target);
-	                    }
-	                    return val;
-	                },
-	                set: function set(newVal) {
-	                    var temp = val;
-	                    val = newVal;
-	                    dep.notify();
-	                }
-	            });
-	            t.$observe(val);
-	        });
-	    };
-
-	    this.$cloneArray = function (a_array) {
-	        var ORP = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
-	        var arrayProto = Array.prototype;
-	        var newProto = Object.create(arrayProto);
-	        var t = this;
-	        ORP.forEach(function (prop) {
-	            Object.defineProperty(newProto, prop, {
-	                value: function value(newVal) {
-	                    arrayProto[prop].apply(a_array, arguments);
-	                    dep.notify();
-	                },
-	                enumerable: false,
-	                configurable: true,
-	                writable: true
-	            });
-	        });
-	        a_array.__proto__ = newProto;
-	    };
-
-	    this.$observe(obj, []);
-	};
-
-	exports.default = Observe;
 
 /***/ }
 /******/ ]);

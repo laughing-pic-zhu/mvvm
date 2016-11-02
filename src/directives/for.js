@@ -1,6 +1,7 @@
 import { Directive, extend } from '../directive'
 import { storageDom, replaceNode, createFragment, contrastArray } from '../util'
 import directives from './index';
+import { defineProperty } from '../observe';
 
 var VFor = function() {
     Directive.apply(this, arguments);
@@ -48,11 +49,12 @@ vfor.createFragment = function(item) {
     var direct_array = this.direct_array;
     var vm = this.vm;
 
-    var _scope=Object.create(this.vm);
-    _scope.node=newNode;
-    _scope.model=item;
-    _scope.el=el
+    var _scope = Object.create(vm);
+    _scope.model = Object.create(_scope.model);
+    _scope.el = newNode;
 
+    defineProperty(_scope.model, this.alias, item);
+    
     attrs.forEach(function(attr) {
         var name = attr.name;
         var val = attr.value;

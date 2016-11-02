@@ -1,13 +1,13 @@
 import Dep from './depend'
+import { isArray } from './util'
 
-var Observe = function(obj) {
+export function Observe(obj) {
     this.$observe = function(_obj) {
         var type = Object.prototype.toString.call(_obj);
-        if (type == '[object Object]' || type == '[object Array]') {
+        if (type == '[object Object]') {
             this.$observeObj(_obj);
-            if (type == '[object Array]') {
-                this.$cloneArray(_obj);
-            }
+        } else if (type == '[object Array]') {
+            this.$cloneArray(_obj);
         }
     };
 
@@ -15,22 +15,11 @@ var Observe = function(obj) {
         var t = this;
         Object.keys(obj).forEach(function(prop) {
             var val = obj[prop];
-            var dep = new Dep();
+            defineProperty(obj, prop, val);
+            if (prop != '__observe__') {
+                t.$observe(val);
+            }
 
-            Object.defineProperty(obj, prop, {
-                get: function() {
-                    if (Dep.target) {
-                        dep.addSub(Dep.target);
-                    }
-                    return val;
-                },
-                set: function(newVal) {
-                    var temp = val;
-                    val = newVal;
-                    dep.notify();
-                }
-            });
-            t.$observe(val);
         });
     };
 
@@ -42,6 +31,7 @@ var Observe = function(obj) {
         ORP.forEach(function(prop) {
             Object.defineProperty(newProto, prop, {
                 value: function(newVal) {
+                    var dep = a_array.__observe__;
                     arrayProto[prop].apply(a_array, arguments);
                     dep.notify();
                 },
@@ -56,5 +46,43 @@ var Observe = function(obj) {
     this.$observe(obj, []);
 }
 
+var addObserve = function(val) {
+    if (!val || typeof val != 'object') {
+        return;
+    }
+    var dep = new Dep();
+    if (isArray(val)) {
+        val.__observe__ = dep;
+        return dep;
+    }
 
-export default Observe;
+}
+
+export function defineProperty(obj, prop, val) {
+    if (prop == '__observe__') {
+        return;
+    }
+    val = val || obj[prop];
+    var dep = new Dep();
+
+    obj.__observe__ = dep;
+    var childDep = addObserve(val);
+
+    Object.defineProperty(obj, prop, {
+        get: function() {
+            var target = Dep.target
+            if (target) {
+                dep.addSub(target);
+                if (childDep) {
+                    childDep.addSub(target);
+                }
+            }
+            return val;
+        },
+        set: function(newVal) {
+            var temp = val;
+            val = newVal;
+            dep.notify();
+        }
+    });
+}

@@ -29,16 +29,18 @@
 <script src="../../dist/mvvm.js"></script>
 
 <script>
+
     var todos=[
         'add one',
         'add two',
         'add three11'
     ];
+    var obj={
+        todos:todos
+    }
     new MVVM({
         el:'#todos',
-        data:{
-            todos: todos
-        }
+        data:obj
     });
 </script>
 
