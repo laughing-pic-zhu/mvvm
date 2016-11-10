@@ -12,4 +12,7 @@
     - npm i 
     - npm run build
     - npm run start
-    - http://127.0.0.1:8080/webpack-dev-server/example打开    
+    - http://127.0.0.1:8080/webpack-dev-server/example 打开   
+     
+如果sourcemap没生效可以将babel-core node_modules里面babel-generator/lib source-map替换为6.11.0及之前就能生效
+babel的bug 尼玛一个礼拜才踩过来的坑!!!!  
