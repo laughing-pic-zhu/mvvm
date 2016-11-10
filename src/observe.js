@@ -80,9 +80,10 @@ export function defineProperty(obj, prop, val) {
             return val;
         },
         set: function(newVal) {
-            var temp = val;
-            val = newVal;
-            dep.notify();
+            if(newVal!=val){
+                val = newVal;
+                dep.notify();
+            }
         }
     });
 }

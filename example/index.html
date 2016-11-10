@@ -29,16 +29,14 @@
     <h1 v-if="ok">Yes</h1>
     <h1 v-else>No</h1>
 </div>
-
-
 </body>
 
-<script src="../dist/mvvm.js"></script>
-
+<script src="http://127.0.0.1:8080/mvvm.js"></script>
 <script>
         var obj = {
             title: '欢迎来到英雄联盟',
             show: false,
+
             firstName: 'zhu',
             secondName: 'jian',
             fullName: function () {
@@ -54,7 +52,10 @@
 
 <script>
     new MVVM({
-        el:'#message'
+        el:'#message',
+        data:{
+           message:'' 
+        }
     });
 </script>
 

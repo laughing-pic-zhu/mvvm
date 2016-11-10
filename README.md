@@ -8,23 +8,8 @@
     - v-if/v-else : 条件判断
     
 ## 可在console里面对数据操作调试ui    
- - $watch
-    
-    ```
-    var obj={
-        title: '欢迎来到英雄联盟',
-        show: false
-    };
-    
-    var vm=new MVVM({
-        el:'#person',
-        data:obj
-    });
-    
-    vm.$watch(cc,function(path,oldValue,newValue){
-        console.log(path);
-        console.log(oldValue);
-        console.log(newValue);
-    })
-    
-    ```
+ - 启动项目
+    - npm i 
+    - npm run build
+    - npm run start
+    - http://127.0.0.1:8080/webpack-dev-server/example打开    
