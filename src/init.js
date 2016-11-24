@@ -8,7 +8,6 @@ var MVVM = function(params) {
 	this.direct_array=[];
 	new Observe(this.model);
 	compile(this);
-	console.log(1222);
 };
 
 window.MVVM = MVVM;

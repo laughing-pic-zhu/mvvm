@@ -19,7 +19,6 @@ export function Observe(obj) {
             if (prop != '__observe__') {
                 t.$observe(val);
             }
-
         });
     };
 
@@ -27,13 +26,13 @@ export function Observe(obj) {
         var ORP = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
         var arrayProto = Array.prototype;
         var newProto = Object.create(arrayProto);
-        var t = this;
         ORP.forEach(function(prop) {
             Object.defineProperty(newProto, prop, {
                 value: function(newVal) {
                     var dep = a_array.__observe__;
-                    arrayProto[prop].apply(a_array, arguments);
+                    var re=arrayProto[prop].apply(a_array, arguments);
                     dep.notify();
+                    return re;
                 },
                 enumerable: false,
                 configurable: true,

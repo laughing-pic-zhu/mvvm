@@ -10,7 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "buildminify": "webpack --uglify=true",
     "build": "webpack",
-    "start":"webpack-dev-server --hot"
+    "start":"webpack-dev-server --hot --inline --content-base example/"
   },
   "repository": {
     "type": "git",

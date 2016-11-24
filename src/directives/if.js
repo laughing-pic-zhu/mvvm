@@ -18,7 +18,6 @@ vif.bind = function() {
     this.newPosition = storageDom(el);
     this._first = true;
     this._bind();
-
 };
 
 vif.update = function(judge) {

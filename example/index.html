@@ -8,9 +8,10 @@
 <div id="person">
     <h1 >{{title}}</h1>
     <div v-show="show">我是laughing猪爷,lol电6王者</div>
+    <div>{{firstName}}</div>
     <input type="text" v-model="firstName"/>
+    <div>{{secondName}}</div>
     <input type="text" v-model="secondName"/>
-    <div v-text="fullName"></div>
 </div>
 
 <div id="message">
@@ -36,12 +37,8 @@
         var obj = {
             title: '欢迎来到英雄联盟',
             show: false,
-
             firstName: 'zhu',
-            secondName: 'jian',
-            fullName: function () {
-                return this.firstName + this.secondName;
-            }
+            secondName: 'jian'
         };
 
         new MVVM({
