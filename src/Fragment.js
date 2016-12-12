@@ -10,7 +10,7 @@ fp.remove = function () {
 };
 
 fp.insert = function (frag) {
-  var nextElement = this.node.nextElementSibling;
+  var nextElement = this.node.nextSibling;
   nextElement.parentNode.insertBefore(frag.node, nextElement);
 };
 

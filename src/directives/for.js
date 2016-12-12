@@ -51,7 +51,7 @@ vfor.update = function (newItems) {
       });
       if (frag) {
         frag.reused = true;
-      }else{
+      } else {
         var fragment = this.createFragment(item);
         frag = new Fragment(fragment, item);
       }
@@ -77,7 +77,7 @@ vfor.update = function (newItems) {
         }
         preFrag.insert(frag);
       }
-      frag.reused=false;
+      frag.reused = false;
     });
 
     // var diff = contrastArray(arrayCache, newItems);
@@ -91,10 +91,8 @@ vfor.createFragment = function (item) {
   var fragment = createFragment();
   var newNode = el.cloneNode(true);
   var direct_array = this.direct_array;
-  var vm = this.vm;
   // var cache = this.cache;
-
-  var _scope = Object.create(vm);
+  var _scope = Object.create(this._scope);
   _scope.model = Object.create(_scope.model);
   _scope.el = newNode;
 
@@ -105,7 +103,7 @@ vfor.createFragment = function (item) {
     var val = attr.value;
     var directiveType = 'v' + /v-(\w+)/.exec(name)[1];
     var Directive = directives[directiveType];
-    var directive = new Directive(vm, val, _scope);
+    var directive = new Directive(val, _scope);
     direct_array.push(directive);
   });
 
@@ -114,35 +112,5 @@ vfor.createFragment = function (item) {
   // cache[item] = fragment;
   return fragment;
 };
-
-vfor.correctDom = function (newItems, oldItem, diff) {
-  var type = diff.type;
-  var diffArray = diff.slice();
-  var domCache = this.domCache;
-  var arrayCache = this.arrayCache;
-  var newPosition = this.newPosition;
-  var parentNode = this.parentNode;
-
-  diffArray.forEach(index => {
-    var fragment;
-    var newVal = newItems[index];
-    var oldDomCache = domCache[index];
-    fragment = this.createFragment(newVal);
-    if (type == 'add') {
-      domCache.push(fragment.children[0]);
-      arrayCache[index] = newItems[index];
-      parentNode.insertBefore(fragment, newPosition);
-    } else if (type == 'delete') {
-      parentNode.removeChild(domCache[index]);
-      delete domCache.splice(index, 1);
-      delete arrayCache.splice(index, 1);
-    } else {
-      domCache[index] = fragment.children[0];
-      arrayCache[index] = newVal;
-      replaceNode(fragment, oldDomCache);
-    }
-  });
-};
-
 
 export default VFor

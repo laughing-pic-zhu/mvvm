@@ -7,7 +7,7 @@
 <body>
 <div id="person">
     <h1 >{{title}}</h1>
-    <div v-show="show">我是laughing猪爷,lol电6王者</div>
+    <div v-show="show" class="test">我是laughing猪爷,lol电6王者</div>
     <div>{{firstName}}</div>
     <input type="text" v-model="firstName"/>
     <div>{{secondName}}</div>
@@ -25,6 +25,16 @@
         </li>
     </ul>
 </div>
+
+<div>
+    <button onclick="push()">
+        数组加值
+    </button>
+    <button onclick="pop()">
+        数组减值
+    </button>
+</div>
+
 
 <div id="condition">
     <h1 v-if="ok">Yes</h1>
@@ -68,6 +78,16 @@
             todos: todos
         }
     });
+</script>
+
+<script>
+    function push(){
+        todos.push(Math.random());
+    }
+
+    function pop(){
+        todos.pop();
+    }
 </script>
 
 <script>

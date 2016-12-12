@@ -8,7 +8,7 @@ var vmodel = extend(VModel);
 
 vmodel.bind = function () {
   var raw = this.raw;
-  var model = this.vm.model
+  var model = this.model;
   if (!model.hasOwnProperty(raw)) {
     model[raw] = '';
   }
@@ -21,7 +21,7 @@ vmodel.update = function (content) {
 };
 
 var onchange = function (raw) {
-  this.vm.model[raw] = event.target.value;
+  this.model[raw] = event.target.value;
 };
 
 export default VModel

@@ -69,7 +69,7 @@ export function defineProperty(obj, prop, val) {
 
     Object.defineProperty(obj, prop, {
         get: function() {
-            var target = Dep.target
+            var target = Dep.target;
             if (target) {
                 dep.addSub(target);
                 if (childDep) {
