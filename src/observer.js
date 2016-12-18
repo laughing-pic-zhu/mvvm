@@ -1,7 +1,7 @@
 import Dep from './depend'
 import { isArray } from './util'
 
-export function Observe(obj) {
+export function Observer(obj) {
     this.$observe = function(_obj) {
         var type = Object.prototype.toString.call(_obj);
         if (type == '[object Object]') {

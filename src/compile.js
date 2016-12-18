@@ -1,36 +1,27 @@
-import {textReg, removeAttribute, stringParse, toArray} from './util';
+import {removeAttribute, stringParse, toArray, nodeToFragment} from './util';
 import directives from './directives';
 
-var type_array = [
-  'v-text', 'v-show', 'v-model', 'v-for', 'v-if', 'v-else'
-];
-
-var compile = function (nodes, model) {
-  var cache = [];
-  complieTemplate(nodes, cache);
-  parseTemplate(model, cache);
+var compile = function () {
+  var el = this.el;
+  var model = this.model;
+  var frag = nodeToFragment(el);
+  complieTemplate(frag, model);
+  el.appendChild(frag);
 };
 
-var complieTemplate = function (nodes, cache) {
-  if (nodes.nodeType == 1) {
-    if (hasDirective(nodes)) {
-      cache.push(nodes);
-    }
+var complieTemplate = function (nodes, model) {
+  if ((nodes.nodeType == 1 || nodes.nodeType == 11) && !isScript(nodes)) {
+    paserNode(model, nodes);
     if (nodes.hasChildNodes()) {
-      nodes.childNodes.forEach(item=> {
-        complieTemplate(item,cache);
+      nodes.childNodes.forEach(node=> {
+        complieTemplate(node, model);
       })
     }
   }
 };
 
-var parseTemplate = function (model, cache) {
-  cache.forEach(node=> {
-    paserNode(model, node);
-  })
-};
-
 var paserNode = function (model, node) {
+  var attributes = node.attributes || [];
   var direct_array = [];
   var scope = {
     parentNode: node.parentNode,
@@ -40,7 +31,7 @@ var paserNode = function (model, node) {
     direct_array: direct_array
   };
 
-  var attributes = toArray(node.attributes);
+  attributes = toArray(attributes);
   var textContent = node.textContent;
   var attrs = [];
   var vfor;
@@ -83,25 +74,15 @@ var paserNode = function (model, node) {
   });
 };
 
-
-var hasDirective = function (node) {
-  var flag = false;
-  type_array.forEach(attr => {
-    if (node.hasAttribute(attr)) {
-      flag = true;
-    }
-  });
-  if (!flag) {
-    var textContent = node.textContent;
-    if (new RegExp(textReg).test(textContent)) {
-      flag = true;
-    }
-  }
-  return flag;
-};
-
 var isDirective = function (attr) {
-  return /v-(\w.)/.test(attr)
+  return /v-(\w+)/.test(attr)
 };
+
+var isScript = function isScript(el) {
+  return el.tagName === 'SCRIPT' && (
+      !el.hasAttribute('type') ||
+      el.getAttribute('type') === 'text/javascript'
+    )
+}
 
 export default compile

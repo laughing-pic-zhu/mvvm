@@ -1,7 +1,7 @@
 import {Directive, extend} from '../directive'
 import {storageDom, replaceNode, createFragment, beforeInsert} from '../util'
 import directives from './index';
-import {defineProperty} from '../observe';
+import {defineProperty} from '../observer';
 import Fragment from '../Fragment';
 
 var VFor = function () {

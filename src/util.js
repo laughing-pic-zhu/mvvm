@@ -80,6 +80,16 @@ var isArray = function (obj) {
   return Object.prototype.toString.apply(obj) == '[object Array]';
 }
 
+var nodeToFragment=function(node){
+  var frag = document.createDocumentFragment();
+  var child;
+  while(child=node.firstChild){
+    console.log(child);
+    frag.appendChild(child)
+  }
+  return frag;
+};
+
 export {
   createAnchor,
   contrastArray,
@@ -88,7 +98,7 @@ export {
   stringParse,
   createFragment,
   removeAttribute,
-  textReg,
+  nodeToFragment,
   toArray,
   storageDom,
   beforeInsert,

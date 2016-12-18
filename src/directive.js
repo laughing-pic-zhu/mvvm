@@ -8,7 +8,6 @@ function Directive(raw,scope) {
     var el=this.el;
     el._directive = el._directive || [];
     el._directive.push(this);
-    
     this.bind();
 }
 
