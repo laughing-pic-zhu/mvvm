@@ -11,11 +11,6 @@ vt.bind = function (val) {
 };
 
 vt.update = function (textContent) {
-    if (typeof textContent == 'function') {
-        var model=this.model;
-        textContent = textContent.apply(model);
-    }
-
     this.el.textContent = textContent;
 };
 

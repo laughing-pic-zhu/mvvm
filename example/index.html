@@ -5,8 +5,10 @@
     <title>Document</title>
 </head>
 <body>
+<h1>测试v-model指令</h1>
 <div id="person">
-    <h1 >{{title}}</h1>
+
+    <div >{{title}}</div>
     <div v-show="show" class="test">我是laughing猪爷,lol电6王者</div>
     <div>{{firstName}}</div>
     <input type="text" v-model="firstName"/>
@@ -18,6 +20,8 @@
     <h1 v-text="message"></h1>
     <input type="text" v-model="message"/>
 </div>
+
+<h1>测试v-for指令</h1>
 
 <div id="todos">
     <ul>
@@ -35,10 +39,14 @@
     </button>
 </div>
 
+<h1>测试v-if/v-else指令</h1>
 
 <div id="condition">
     <h1 v-if="ok">Yes</h1>
     <h1 v-else>No</h1>
+    <button onclick="changeCondition()">
+        切换值
+    </button>
 </div>
 </body>
 
@@ -87,6 +95,10 @@
 
     function pop(){
         todos.pop();
+    }
+
+    function changeCondition(){
+        flagObj.ok=!flagObj.ok;
     }
 </script>
 

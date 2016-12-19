@@ -90,6 +90,12 @@ var nodeToFragment=function(node){
   return frag;
 };
 
+var isInDom=function(dom){
+  if(dom&&dom.children.length>0){
+    return true
+  }
+  return false
+};
 export {
   createAnchor,
   contrastArray,
@@ -102,5 +108,6 @@ export {
   toArray,
   storageDom,
   beforeInsert,
-  isArray
+  isArray,
+  isInDom
 }

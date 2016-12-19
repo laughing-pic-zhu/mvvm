@@ -1,5 +1,5 @@
 import { Directive, extend } from '../directive'
-import { storageDom, replaceNode } from '../util'
+import { storageDom, isInDom } from '../util'
 var VIf = function() {
     Directive.apply(this, arguments);
 };
@@ -24,15 +24,22 @@ vif.update = function(judge) {
     var el = this.el;
     var elseNode = this.elseNode;
     var parentNode = this.parentNode;
+
     var newPosition = this.newPosition;
 
     if (judge) {
+        if(!isInDom(parentNode)){
+            parentNode=elseNode.parentNode;
+        }
         if (!this._first&&elseNode) {
             parentNode.removeChild(elseNode);
         }
 
         parentNode.insertBefore(el, newPosition);
     } else {
+        if(!isInDom(parentNode)){
+            parentNode=el.parentNode;
+        }
         if (!this._first) {
             parentNode.removeChild(el);
         }
