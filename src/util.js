@@ -84,7 +84,6 @@ var nodeToFragment=function(node){
   var frag = document.createDocumentFragment();
   var child;
   while(child=node.firstChild){
-    console.log(child);
     frag.appendChild(child)
   }
   return frag;

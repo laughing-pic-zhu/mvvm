@@ -3,4 +3,5 @@ mvvm-c/
 .DS_Store
 node_modules/
 prototype/
+myTest/
 *.log
